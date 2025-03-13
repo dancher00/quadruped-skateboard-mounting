@@ -30,6 +30,8 @@ from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
 import robot_lab.tasks.locomotion.velocity.mdp as mdp
 
+from robot_lab.assets import ISAACLAB_ASSETS_DATA_DIR
+from isaaclab.actuators.actuator_cfg import ImplicitActuatorCfg
 ##
 # Pre-defined configs
 ##
@@ -92,6 +94,43 @@ class MySceneCfg(InteractiveSceneCfg):
             intensity=750.0,
             texture_file=f"{ISAAC_NUCLEUS_DIR}/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
         ),
+    )
+
+    skateboard = ArticulationCfg(
+        prim_path="/World/envs/env_.*/Skateboard",
+        spawn=sim_utils.UsdFileCfg(
+            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/urdf/ski/ski.usd",
+            activate_contact_sensors=False,
+        ),
+        init_state=ArticulationCfg.InitialStateCfg(
+            pos=(1.0, -0.39, 0.0),
+            rot=(1.0, 0.0, 0.0, 0.0),
+            joint_pos={  # Указываем реальные имена шарниров из ski.usd
+                "trj0": 0.0,
+                "trj1": 0.0,
+                "whj0": 0.0,
+                "whj1": 0.0,
+                "whj2": 0.0,
+                "whj3": 0.0,
+            },
+        ),
+        actuators={  # Добавляем моторы для колес
+            "wheels": ImplicitActuatorCfg(
+                joint_names_expr=["whj0", "whj1", "whj2", "whj3"],  # Исправленные названия
+                effort_limit=10.0,
+                velocity_limit=20.0,
+                stiffness=5.0,
+                damping=0.5,
+            ),
+
+            "tr": ImplicitActuatorCfg(
+                joint_names_expr=["trj0", "trj1"],  # Исправленные названия
+                effort_limit=10.0,
+                velocity_limit=20.0,
+                stiffness=5.0,
+                damping=0.5,
+            ),
+        },
     )
 
 
