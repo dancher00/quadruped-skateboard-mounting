@@ -6,7 +6,7 @@ from __future__ import annotations
 import torch
 from typing import TYPE_CHECKING
 
-from isaaclab.assets import Articulation
+from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 
 if TYPE_CHECKING:
@@ -32,3 +32,57 @@ def phase(env: ManagerBasedRLEnv, cycle_time: float) -> torch.Tensor:
     phase = env.episode_length_buf[:, None] * env.step_dt / cycle_time
     phase_tensor = torch.cat([torch.sin(2 * torch.pi * phase), torch.cos(2 * torch.pi * phase)], dim=-1)
     return phase_tensor
+
+def skate_pos_rel(
+    env: ManagerBasedEnv,
+) -> torch.Tensor:
+    """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+    # extract the used quantities (to enable type-hinting)
+    skate_pos_rel = env.scene["skate_transform"].data.target_pos_source.squeeze(1)
+    return skate_pos_rel
+
+def skate_rot_rel(
+    env: ManagerBasedEnv,
+) -> torch.Tensor:
+    """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+    # extract the used quantities (to enable type-hinting)
+    skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
+    return skate_rot_rel
+
+# def skate_pos_rel(
+#     env: ManagerBasedEnv,
+#     robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+#     skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard"),
+# ) -> torch.Tensor:
+#     """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+#     # extract the used quantities (to enable type-hinting)
+#     robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
+#     skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+#     skate_pos_rel = skate_asset.data.root_pos_w - robot_asset.data.root_pos_w
+
+#     return skate_pos_rel
+
+# def skate_rot_rel(
+#     env: ManagerBasedEnv,
+#     robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+#     skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard"),
+# ) -> torch.Tensor:
+#     """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+#     # extract the used quantities (to enable type-hinting)
+#     robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
+#     skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+
+#     skate_q = skate_asset.data.root_quat_w
+#     robot_q = robot_asset.data.root_quat_w
+#     robot_q_inv = torch.tensor([robot_q[0], -robot_q[1], -robot_q[2], -robot_q[3]])
+#     skate_rot_rel = quaternion_multiply(skate_q, robot_q_inv)
+
+#     return skate_rot_rel
+
+# def quaternion_multiply(quaternion1, quaternion0):
+#     w0, x0, y0, z0 = quaternion0
+#     w1, x1, y1, z1 = quaternion1
+#     return torch.tensor([-x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0,
+#                      x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0,
+#                      -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
+#                      x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0], dtype=torch.float64)

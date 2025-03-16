@@ -22,7 +22,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, FrameTransformerCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
@@ -134,6 +134,11 @@ class MySceneCfg(InteractiveSceneCfg):
         },
     )
 
+    skate_transform = FrameTransformerCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/base",
+        target_frames=[FrameTransformerCfg.FrameCfg(prim_path="{ENV_REGEX_NS}/Skateboard/base_link")],
+        debug_vis=False,
+    )
 
 ##
 # MDP settings
@@ -224,6 +229,28 @@ class ObservationsCfg:
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
             noise=Unoise(n_min=-0.1, n_max=0.1),
             clip=(-1.0, 1.0),
+            scale=1.0,
+        )
+        skate_pos_rel = ObsTerm(
+            func=mdp.skate_pos_rel,
+            noise=Unoise(n_min=-0.1, n_max=0.1),
+            scale=1.0,
+        )
+        # skate_rot_rel = ObsTerm(
+        #     func=mdp.skate_rot_rel,
+        #     noise=Unoise(n_min=-0.1, n_max=0.1),
+        #     scale=1.0,
+        # )
+
+        skate_pos_rel = ObsTerm(
+            func=mdp.skate_pos_rel,
+            noise=Unoise(n_min=-0.1, n_max=0.1),
+            scale=1.0,
+        )
+
+        skate_rot_rel = ObsTerm(
+            func=mdp.skate_rot_rel,
+            noise=Unoise(n_min=-0.1, n_max=0.1),
             scale=1.0,
         )
 
@@ -706,7 +733,7 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings
-    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: MySceneCfg = MySceneCfg(num_envs=1, env_spacing=2.5)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
