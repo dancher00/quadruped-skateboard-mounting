@@ -22,7 +22,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, FrameTransformerCfg
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, FrameTransformerCfg, OffsetCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
@@ -87,6 +87,11 @@ class MySceneCfg(InteractiveSceneCfg):
         mesh_prim_paths=["/World/ground"],
     )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
+    FR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
+    FL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
+    RR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
+    RL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
+
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -101,10 +106,11 @@ class MySceneCfg(InteractiveSceneCfg):
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/urdf/ski/ski.usd",
-            activate_contact_sensors=False,
+            activate_contact_sensors=True,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(1.0, -0.39, 0.0),
+            # pos=(1.0, -0.39, 0.0),
+            pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
                 "trj0": 0.0,
@@ -136,6 +142,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
     skate_transform = FrameTransformerCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
+        source_frame_offset = OffsetCfg(pos = (0.0, 0.0, -0.2)),
         target_frames=[FrameTransformerCfg.FrameCfg(prim_path="{ENV_REGEX_NS}/Skateboard/base_link")],
         debug_vis=False,
     )
@@ -231,16 +238,6 @@ class ObservationsCfg:
             clip=(-1.0, 1.0),
             scale=1.0,
         )
-        skate_pos_rel = ObsTerm(
-            func=mdp.skate_pos_rel,
-            noise=Unoise(n_min=-0.1, n_max=0.1),
-            scale=1.0,
-        )
-        # skate_rot_rel = ObsTerm(
-        #     func=mdp.skate_rot_rel,
-        #     noise=Unoise(n_min=-0.1, n_max=0.1),
-        #     scale=1.0,
-        # )
 
         skate_pos_rel = ObsTerm(
             func=mdp.skate_pos_rel,
@@ -687,6 +684,20 @@ class RewardsCfg:
         },
     )
 
+    skate_distance_penalty = RewTerm(
+        func=mdp.skate_distance_penalty,
+        weight=0.1,
+    )
+
+    feet_skate_contact = RewTerm(
+        func=mdp.feet_skate_contact,
+        weight=1.0,
+    )    
+
+    skate_rot_penalty = RewTerm(
+        func=mdp.skate_rot_penalty,
+        weight=1.0,
+    )    
 
 @configclass
 class TerminationsCfg:
