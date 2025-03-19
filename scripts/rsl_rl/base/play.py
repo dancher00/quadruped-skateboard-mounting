@@ -27,7 +27,7 @@ parser.add_argument("--video_length", type=int, default=200, help="Length of the
 parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
-parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+parser.add_argument("--num_envs", type=int, default=50, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument(
     "--use_pretrained_checkpoint",
@@ -79,7 +79,7 @@ def main():
     agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
 
     # make a smaller scene for play
-    env_cfg.scene.num_envs = 50
+    env_cfg.scene.num_envs = args_cli.num_envs
     # spawn the robot randomly in the grid (instead of their terrain levels)
     env_cfg.scene.terrain.max_init_terrain_level = None
     # reduce the number of terrains to save memory
@@ -95,7 +95,7 @@ def main():
     env_cfg.events.push_robot = None
 
     if args_cli.keyboard:
-        env_cfg.scene.num_envs = 1
+        env_cfg.scene.num_envs = 50
         env_cfg.terminations.time_out = None
         env_cfg.commands.base_velocity.debug_vis = False
         controller = Se2Keyboard(

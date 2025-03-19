@@ -109,8 +109,8 @@ class MySceneCfg(InteractiveSceneCfg):
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(1.0, -0.39, 0.0),
-            # pos=(0.0, 0.0, 0.0),
+            # pos=(1.0, -0.39, 0.0),
+            pos=(2.0, 2.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
                 "trj0": 0.0,
@@ -302,6 +302,17 @@ class ObservationsCfg:
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
             clip=(-1.0, 1.0),
+            scale=1.0,
+        )
+        skate_pos_rel = ObsTerm(
+            func=mdp.skate_pos_rel,
+            noise=Unoise(n_min=-0.1, n_max=0.1),
+            scale=1.0,
+        )
+
+        skate_rot_rel = ObsTerm(
+            func=mdp.skate_rot_rel,
+            noise=Unoise(n_min=-0.1, n_max=0.1),
             scale=1.0,
         )
 
@@ -744,7 +755,7 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings
-    scene: MySceneCfg = MySceneCfg(num_envs=1, env_spacing=2.5)
+    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
