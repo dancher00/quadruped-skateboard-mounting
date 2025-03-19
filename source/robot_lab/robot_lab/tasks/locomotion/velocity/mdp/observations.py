@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
+from isaaclab.utils.math import euler_xyz_from_quat
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv, ManagerBasedRLEnv
@@ -46,8 +47,10 @@ def skate_rot_rel(
 ) -> torch.Tensor:
     """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
     # extract the used quantities (to enable type-hinting)
-    skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
-    return skate_rot_rel
+    skate_rot_quat = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
+    skate_rot_euler = euler_xyz_from_quat(skate_rot_quat)
+    skate_rot_euler = torch.cat([skate_rot_euler[0].unsqueeze(1), skate_rot_euler[1].unsqueeze(1), skate_rot_euler[2].unsqueeze(1)], dim=1)
+    return skate_rot_euler
 
 # def skate_pos_rel(
 #     env: ManagerBasedEnv,

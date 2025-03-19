@@ -106,11 +106,11 @@ class MySceneCfg(InteractiveSceneCfg):
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/urdf/ski/ski.usd",
-            activate_contact_sensors=True,
+            activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            # pos=(1.0, -0.39, 0.0),
-            pos=(0.0, 0.0, 0.0),
+            pos=(1.0, -0.39, 0.0),
+            # pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
                 "trj0": 0.0,
@@ -686,17 +686,17 @@ class RewardsCfg:
 
     skate_distance_penalty = RewTerm(
         func=mdp.skate_distance_penalty,
-        weight=0.1,
+        weight=0.0,
     )
 
     feet_skate_contact = RewTerm(
         func=mdp.feet_skate_contact,
-        weight=1.0,
+        weight=0.0,
     )    
 
     skate_rot_penalty = RewTerm(
         func=mdp.skate_rot_penalty,
-        weight=1.0,
+        weight=0.0,
     )    
 
 @configclass

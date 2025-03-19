@@ -145,6 +145,11 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         self.rewards.upward.weight = 3.0
 
+        # skate rewards
+        self.rewards.skate_distance_penalty.weight = 1.0
+        self.rewards.feet_skate_contact.weight = 1.0
+        self.rewards.skate_rot_penalty.weight = 1.0
+
         # If the weight of rewards is 0, set rewards to None
         if self.__class__.__name__ == "UnitreeA1RoughEnvCfg":
             self.disable_zero_weight_rewards()

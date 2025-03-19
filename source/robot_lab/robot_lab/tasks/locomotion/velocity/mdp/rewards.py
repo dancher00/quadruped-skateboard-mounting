@@ -130,35 +130,31 @@ def joint_pos_penalty(
 def skate_distance_penalty(
     env: ManagerBasedRLEnv,
 ) -> torch.Tensor:
-    """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+    """Penalize distance between skateboard and robot"""
     # extract the used quantities (to enable type-hinting)
-    reward = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
+    reward = -torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
     return reward
 
 def feet_skate_contact(
     env: ManagerBasedRLEnv
 ) -> torch.Tensor:
-    """Reward feet contact"""
-    # extract the used quantities (to enable type-hinting)
+    """Reward for feet contact with skateboard"""
     FR_contact_sensor: ContactSensor = env.scene.sensors["FR_contact"]
     FL_contact_sensor: ContactSensor = env.scene.sensors["FL_contact"]
     RR_contact_sensor: ContactSensor = env.scene.sensors["RR_contact"]
     RL_contact_sensor: ContactSensor = env.scene.sensors["RL_contact"]
-    # compute the reward
     FR_contact_sensor.data.force_matrix_w.squeeze(1)
-    # print(FR_contact_sensor.data.force_matrix_w.shape)
     cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
      RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
     
-    reward = torch.sum(torch.any(cat != 0, dim=2), dim=1)
-    # no reward for zero command
-    # reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    reward = torch.sum(torch.any(cat != 0, dim=2), dim=1).float()
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
 def skate_rot_penalty(
     env: ManagerBasedRLEnv,
 ) -> torch.Tensor:
-    """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
+    """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
     # extract the used quantities (to enable type-hinting)
     vicinity_radius = 0.5
     skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
@@ -168,9 +164,7 @@ def skate_rot_penalty(
     vicinity_mask = (distance < vicinity_radius).float()
     reward =  skate_angle_rel / torch.pi
     reward = torch.clamp(reward,min=0)
-    # print(reward.shape)
-    # print(distance.shape)
-    reward = reward * vicinity_mask
+    reward = -reward * vicinity_mask
     return reward
 
 
