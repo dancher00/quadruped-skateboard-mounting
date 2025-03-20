@@ -142,7 +142,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
     skate_transform = FrameTransformerCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
-        source_frame_offset = OffsetCfg(pos = (0.0, 0.0, -0.2)),
+        source_frame_offset = OffsetCfg(pos = (0.0, 0.0, -0.35)),
         target_frames=[FrameTransformerCfg.FrameCfg(prim_path="{ENV_REGEX_NS}/Skateboard/base_link")],
         debug_vis=False,
     )
@@ -206,12 +206,12 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        velocity_commands = ObsTerm(
-            func=mdp.generated_commands,
-            params={"command_name": "base_velocity"},
-            clip=(-100.0, 100.0),
-            scale=1.0,
-        )
+        # velocity_commands = ObsTerm(
+        #     func=mdp.generated_commands,
+        #     params={"command_name": "base_velocity"},
+        #     clip=(-100.0, 100.0),
+        #     scale=1.0,
+        # )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -275,12 +275,12 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        velocity_commands = ObsTerm(
-            func=mdp.generated_commands,
-            params={"command_name": "base_velocity"},
-            clip=(-100.0, 100.0),
-            scale=1.0,
-        )
+        # velocity_commands = ObsTerm(
+        #     func=mdp.generated_commands,
+        #     params={"command_name": "base_velocity"},
+        #     clip=(-100.0, 100.0),
+        #     scale=1.0,
+        # )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -736,13 +736,13 @@ class CurriculumCfg:
 
     terrain_levels = CurrTerm(func=mdp.terrain_levels_vel)
 
-    command_levels = CurrTerm(
-        func=mdp.command_levels_vel,
-        params={
-            "reward_term_name": "track_lin_vel_xy_exp",
-            "max_curriculum": 1.5,
-        },
-    )
+    # command_levels = CurrTerm(
+    #     func=mdp.command_levels_vel,
+    #     params={
+    #         "reward_term_name": "track_lin_vel_xy_exp",
+    #         "max_curriculum": 1.5,
+    #     },
+    # )
 
 
 ##

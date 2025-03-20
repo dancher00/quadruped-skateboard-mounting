@@ -102,7 +102,7 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_pos_limits.weight = -5.0
         self.rewards.joint_vel_limits.weight = 0
         self.rewards.joint_power.weight = -2e-5
-        self.rewards.stand_still_without_cmd.weight = -2.0
+        self.rewards.stand_still_without_cmd.weight = 0.0
         self.rewards.joint_pos_penalty.weight = -1.0
         self.rewards.joint_mirror.weight = -0.05
         self.rewards.joint_mirror.params["mirror_joints"] = [
@@ -120,15 +120,15 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
         # Velocity-tracking rewards
-        self.rewards.track_lin_vel_xy_exp.weight = 3.0
-        self.rewards.track_ang_vel_z_exp.weight = 1.5
+        self.rewards.track_lin_vel_xy_exp.weight = 0.0
+        self.rewards.track_ang_vel_z_exp.weight = 0.0
 
         # Others
         self.rewards.feet_air_time.weight = 0
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_contact_without_cmd.weight = 0.1
+        self.rewards.feet_contact_without_cmd.weight = 0.0
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_stumble.weight = -0.1
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -146,9 +146,9 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 3.0
 
         # skate rewards
-        self.rewards.skate_distance_penalty.weight = 1.0
-        self.rewards.feet_skate_contact.weight = 1.0
-        self.rewards.skate_rot_penalty.weight = 1.0
+        self.rewards.skate_distance_penalty.weight = -10.0
+        self.rewards.feet_skate_contact.weight = 10.0
+        self.rewards.skate_rot_penalty.weight = -5.0
 
         # If the weight of rewards is 0, set rewards to None
         if self.__class__.__name__ == "UnitreeA1RoughEnvCfg":

@@ -132,7 +132,7 @@ def skate_distance_penalty(
 ) -> torch.Tensor:
     """Penalize distance between skateboard and robot"""
     # extract the used quantities (to enable type-hinting)
-    reward = -torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
+    reward = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
     return reward
 
 def feet_skate_contact(
@@ -164,7 +164,7 @@ def skate_rot_penalty(
     vicinity_mask = (distance < vicinity_radius).float()
     reward =  skate_angle_rel / torch.pi
     reward = torch.clamp(reward,min=0)
-    reward = -reward * vicinity_mask
+    reward = reward * vicinity_mask
     return reward
 
 
