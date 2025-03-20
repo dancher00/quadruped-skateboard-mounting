@@ -19,7 +19,7 @@
 
 # Outputs
 **/runs/*
-**/logs/*
+# **/logs/*
 **/recordings/*
 **/output/*
 **/outputs/*
