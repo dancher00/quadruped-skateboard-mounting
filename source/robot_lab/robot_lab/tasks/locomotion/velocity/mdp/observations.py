@@ -52,6 +52,27 @@ def skate_rot_rel(
     skate_rot_euler = torch.cat([skate_rot_euler[0].unsqueeze(1), skate_rot_euler[1].unsqueeze(1), skate_rot_euler[2].unsqueeze(1)], dim=1)
     return skate_rot_euler
 
+def target_vel(
+    env: ManagerBasedRLEnv, robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 
+    skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard")
+) -> torch.Tensor:
+    """Reward tracking of linear velocity commands (xy axes) using exponential kernel."""
+    # extract the used quantities (to enable type-hinting)
+    robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
+    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+
+    target_vel = skate_asset.data.root_pos_w[:, :2] - robot_asset.data.root_pos_w[:, :2]
+    norm_v = torch.norm(target_vel, dim=1, keepdim=True)
+    norm_v = norm_v.repeat(1, 2)
+    vector_norm = 1
+    unit_vector = target_vel / norm_v
+
+    # Replace elements in tensor1 with corresponding elements from tensor3 based on the condition
+    target_vel[norm_v > vector_norm] = unit_vector[norm_v > vector_norm] * vector_norm
+
+    return target_vel
+
+
 # def skate_pos_rel(
 #     env: ManagerBasedEnv,
 #     robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),

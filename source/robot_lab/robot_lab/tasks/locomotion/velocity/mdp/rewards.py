@@ -135,7 +135,7 @@ def skate_distance_penalty(
     reward = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
     return reward
 
-def feet_skate_contact(
+def skate_feet_contact(
     env: ManagerBasedRLEnv
 ) -> torch.Tensor:
     """Reward for feet contact with skateboard"""
@@ -156,7 +156,7 @@ def skate_rot_penalty(
 ) -> torch.Tensor:
     """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
     # extract the used quantities (to enable type-hinting)
-    vicinity_radius = 0.5
+    vicinity_radius = 0.7
     skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
     skate_angle_rel = 2 * torch.acos(torch.clamp(torch.abs(skate_rot_rel[:, 0]), max=1.0))
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
@@ -167,6 +167,30 @@ def skate_rot_penalty(
     reward = reward * vicinity_mask
     return reward
 
+def skate_track_lin_vel_xy_exp(
+    env: ManagerBasedRLEnv, std: float, robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 
+    skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard")
+) -> torch.Tensor:
+    """Reward tracking of linear velocity commands (xy axes) using exponential kernel."""
+    # extract the used quantities (to enable type-hinting)
+    robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
+    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+
+    target_vel = skate_asset.data.root_pos_w[:, :2] - robot_asset.data.root_pos_w[:, :2]
+    norm_v = torch.norm(target_vel, dim=1, keepdim=True)
+    norm_v = norm_v.repeat(1, 2)
+    vector_norm = 0.5
+    unit_vector = target_vel / norm_v
+    target_vel[norm_v > vector_norm] = unit_vector[norm_v > vector_norm] * vector_norm
+
+    # compute the error
+    lin_vel_error = torch.sum(
+        torch.square(target_vel - robot_asset.data.root_lin_vel_b[:, :2]),
+        dim=1,
+    )
+    reward = torch.exp(-lin_vel_error / std**2)
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
 
 class GaitReward(ManagerTermBase):
     """Gait enforcing reward term for quadrupeds.

@@ -109,8 +109,8 @@ class MySceneCfg(InteractiveSceneCfg):
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            # pos=(1.0, -0.39, 0.0),
-            pos=(2.0, 2.0, 0.0),
+            pos=(3.0, 3.0, 0.0),
+            # pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
                 "trj0": 0.0,
@@ -142,7 +142,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
     skate_transform = FrameTransformerCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
-        source_frame_offset = OffsetCfg(pos = (0.0, 0.0, -0.35)),
+        source_frame_offset = OffsetCfg(pos = (0.0, 0.0, 0.0)),
         target_frames=[FrameTransformerCfg.FrameCfg(prim_path="{ENV_REGEX_NS}/Skateboard/base_link")],
         debug_vis=False,
     )
@@ -163,7 +163,7 @@ class CommandsCfg:
         rel_heading_envs=1.0,
         heading_command=True,
         heading_control_stiffness=0.5,
-        debug_vis=True,
+        debug_vis=False,
         ranges=mdp.UniformThresholdVelocityCommandCfg.Ranges(
             lin_vel_x=(-1.0, 1.0), lin_vel_y=(-1.0, 1.0), ang_vel_z=(-1.0, 1.0), heading=(-math.pi, math.pi)
         ),
@@ -700,15 +700,24 @@ class RewardsCfg:
         weight=0.0,
     )
 
-    feet_skate_contact = RewTerm(
-        func=mdp.feet_skate_contact,
+    skate_feet_contact = RewTerm(
+        func=mdp.skate_feet_contact,
         weight=0.0,
+        
     )    
 
     skate_rot_penalty = RewTerm(
         func=mdp.skate_rot_penalty,
         weight=0.0,
-    )    
+    )
+
+    skate_track_lin_vel_xy_exp = RewTerm(
+        func=mdp.skate_track_lin_vel_xy_exp,
+        weight=0.0,
+        params={
+            "std": math.sqrt(0.25),
+        },
+    )
 
 @configclass
 class TerminationsCfg:
