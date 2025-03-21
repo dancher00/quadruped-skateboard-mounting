@@ -156,7 +156,7 @@ def skate_rot_penalty(
 ) -> torch.Tensor:
     """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
     # extract the used quantities (to enable type-hinting)
-    vicinity_radius = 0.5
+    vicinity_radius = 0.3
     skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
     skate_angle_rel = 2 * torch.acos(torch.clamp(torch.abs(skate_rot_rel[:, 0]), max=1.0))
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
@@ -164,6 +164,7 @@ def skate_rot_penalty(
     vicinity_mask = (distance < vicinity_radius).float()
     reward =  skate_angle_rel / torch.pi
     reward = torch.clamp(reward,min=0)
+    reward = 1 - reward
     reward = reward * vicinity_mask
     return reward
 
@@ -190,6 +191,17 @@ def skate_track_lin_vel_xy_exp(
         dim=1,
     )
     reward = torch.exp(-lin_vel_error / std**2)
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+def skate_distance_reward(
+    env: ManagerBasedRLEnv,
+) -> torch.Tensor:
+    """Penalize distance between skateboard and robot"""
+    # extract the used quantities (to enable type-hinting)
+    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    reward = torch.clamp(1 - distance, min=0)
+    # reward = 1/ distance
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 

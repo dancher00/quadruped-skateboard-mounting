@@ -10,6 +10,7 @@ import inspect
 import math
 import sys
 from dataclasses import MISSING
+import torch
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -101,6 +102,13 @@ class MySceneCfg(InteractiveSceneCfg):
         ),
     )
 
+    # radius_dist = torch.distributions.uniform.Uniform(1., 3.)
+    # angle_dist = torch.distributions.uniform.Uniform(-torch.pi, torch.pi)
+    # radius = radius_dist.sample()
+    # angle = angle_dist.sample()
+    # pos_x = radius * torch.cos(angle)
+    # pos_y = radius * torch.sin(angle)
+
     skateboard = ArticulationCfg(
         prim_path="/World/envs/env_.*/Skateboard",
         collision_group=0,
@@ -109,7 +117,8 @@ class MySceneCfg(InteractiveSceneCfg):
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(1.0, 1.0, 0.0),
+            
+            pos=( 1.0, 1.0, 0.0),
             # pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
@@ -729,6 +738,11 @@ class RewardsCfg:
         params={
             "std": math.sqrt(0.25),
         },
+    )
+
+    skate_distance_reward = RewTerm(
+        func=mdp.skate_distance_reward,
+        weight=0.0,
     )
 
 @configclass
