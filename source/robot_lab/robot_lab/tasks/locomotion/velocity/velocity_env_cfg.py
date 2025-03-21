@@ -109,7 +109,7 @@ class MySceneCfg(InteractiveSceneCfg):
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(3.0, 3.0, 0.0),
+            pos=(1.0, 1.0, 0.0),
             # pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
@@ -250,6 +250,18 @@ class ObservationsCfg:
             noise=Unoise(n_min=-0.1, n_max=0.1),
             scale=1.0,
         )
+
+        # target_vel = ObsTerm(
+        #     func=mdp.target_vel,
+        #     noise=Unoise(n_min=-0.1, n_max=0.1),
+        #     scale=1.0,
+        # )
+
+        # target_pos = ObsTerm(
+        #     func=mdp.target_pos,
+        #     noise=Unoise(n_min=-0.1, n_max=0.1),
+        #     scale=1.0,
+        # )
 
         def __post_init__(self):
             self.enable_corruption = True
