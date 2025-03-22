@@ -85,7 +85,7 @@ class MySceneCfg(InteractiveSceneCfg):
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=(0.1, 0.1)),
         debug_vis=False,
-        mesh_prim_paths=["/World/ground"],
+        mesh_prim_paths=["/World/ground"]
     )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
     FR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
@@ -541,7 +541,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
-            "velocity_threshold": 0.5,
+            "distance_threshold": 0.2,
             "command_threshold": 0.1,
         },
     )
@@ -727,8 +727,8 @@ class RewardsCfg:
         
     )    
 
-    skate_rot_penalty = RewTerm(
-        func=mdp.skate_rot_penalty,
+    skate_rot_reward = RewTerm(
+        func=mdp.skate_rot_reward,
         weight=0.0,
     )
 
@@ -743,6 +743,16 @@ class RewardsCfg:
     skate_distance_reward = RewTerm(
         func=mdp.skate_distance_reward,
         weight=0.0,
+    )
+
+    skate_feet_height = RewTerm(
+        func=mdp.skate_feet_height,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+            "distance_threshold": 0.15,
+            "target_height": 0.15,
+        },
     )
 
 @configclass

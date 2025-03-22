@@ -148,9 +148,11 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # skate rewards
         self.rewards.skate_distance_penalty.weight = 0.0
         self.rewards.skate_feet_contact.weight = 5.0
-        self.rewards.skate_rot_penalty.weight = 5.0
+        self.rewards.skate_rot_reward.weight = 5.0
         self.rewards.skate_track_lin_vel_xy_exp.weight = 3.0
         self.rewards.skate_distance_reward.weight = 10.0
+        self.rewards.skate_feet_height.weight = -50.0
+        self.rewards.skate_feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         
 
         # If the weight of rewards is 0, set rewards to None

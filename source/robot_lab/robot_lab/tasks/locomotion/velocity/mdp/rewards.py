@@ -108,19 +108,20 @@ def joint_pos_penalty(
     command_name: str,
     asset_cfg: SceneEntityCfg,
     stand_still_scale: float,
-    velocity_threshold: float,
+    distance_threshold: float,
     command_threshold: float,
 ) -> torch.Tensor:
     """Penalize joint position error from default on the articulation."""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
-    cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1)
+    # cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1)
     body_vel = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
     running_reward = torch.linalg.norm(
         (asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]), dim=1
     )
+    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
     reward = torch.where(
-        torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
+        distance > distance_threshold,
         running_reward,
         stand_still_scale * running_reward,
     )
@@ -151,7 +152,7 @@ def skate_feet_contact(
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
-def skate_rot_penalty(
+def skate_rot_reward(
     env: ManagerBasedRLEnv,
 ) -> torch.Tensor:
     """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
@@ -201,7 +202,23 @@ def skate_distance_reward(
     # extract the used quantities (to enable type-hinting)
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
     reward = torch.clamp(1 - distance, min=0)
-    # reward = 1/ distance
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+def skate_feet_height(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    target_height: float,
+    distance_threshold: float,
+) -> torch.Tensor:
+    """Reward the swinging feet for clearing a specified height off the ground"""
+    asset: RigidObject = env.scene[asset_cfg.name]
+    foot_heigh = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
+    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    foot_z_target_error = torch.square(foot_heigh - target_height)
+    reward = torch.sum(foot_z_target_error, dim=1)
+    # reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward = torch.where(distance < distance_threshold, reward, 0)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -516,7 +533,7 @@ def feet_height_body(
     foot_z_target_error = torch.square(footpos_in_body_frame[:, :, 2] - target_height).view(env.num_envs, -1)
     foot_velocity_tanh = torch.tanh(tanh_mult * torch.norm(footvel_in_body_frame[:, :, :2], dim=2))
     reward = torch.sum(foot_z_target_error * foot_velocity_tanh, dim=1)
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    # reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -629,7 +646,10 @@ def base_height_l2(
         # Use the provided target height directly for flat terrain
         adjusted_target_height = target_height
     # Compute the L2 squared penalty
-    reward = torch.square(asset.data.root_pos_w[:, 2] - adjusted_target_height)
+    error = asset.data.root_pos_w[:, 2] - adjusted_target_height
+    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    reward = torch.where(distance < 0.15, error - 0.125, error)
+    reward = torch.square(error)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
