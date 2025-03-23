@@ -88,10 +88,10 @@ class MySceneCfg(InteractiveSceneCfg):
         mesh_prim_paths=["/World/ground"]
     )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
-    FR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
-    FL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
-    RR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
-    RL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True)
+    FR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True, track_pose=True)
+    FL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/FL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True, track_pose=True)
+    RR_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RR_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True, track_pose=True)
+    RL_contact = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/RL_foot", filter_prim_paths_expr=["{ENV_REGEX_NS}/Skateboard/base_link"], track_air_time=True, track_pose=True)
 
     # lights
     sky_light = AssetBaseCfg(
@@ -251,26 +251,16 @@ class ObservationsCfg:
         skate_pos_rel = ObsTerm(
             func=mdp.skate_pos_rel,
             noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(-5.0, 5.0),
             scale=1.0,
         )
 
         skate_rot_rel = ObsTerm(
             func=mdp.skate_rot_rel,
             noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(-5*torch.pi, 5*torch.pi),
             scale=1.0,
         )
-
-        # target_vel = ObsTerm(
-        #     func=mdp.target_vel,
-        #     noise=Unoise(n_min=-0.1, n_max=0.1),
-        #     scale=1.0,
-        # )
-
-        # target_pos = ObsTerm(
-        #     func=mdp.target_pos,
-        #     noise=Unoise(n_min=-0.1, n_max=0.1),
-        #     scale=1.0,
-        # )
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -328,12 +318,14 @@ class ObservationsCfg:
         skate_pos_rel = ObsTerm(
             func=mdp.skate_pos_rel,
             noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(-5.0, 5.0),
             scale=1.0,
         )
 
         skate_rot_rel = ObsTerm(
             func=mdp.skate_rot_rel,
             noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(-5*torch.pi, 5*torch.pi),
             scale=1.0,
         )
 
@@ -481,6 +473,7 @@ class RewardsCfg:
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "sensor_cfg": SceneEntityCfg("height_scanner_base"),
             "target_height": 0.0,
+            "distance_threshold": 0.4
         },
     )
     body_lin_acc_l2 = RewTerm(
@@ -541,7 +534,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
-            "distance_threshold": 0.2,
+            "distance_threshold": 0.4,
             "command_threshold": 0.1,
         },
     )
@@ -724,12 +717,18 @@ class RewardsCfg:
     skate_feet_contact = RewTerm(
         func=mdp.skate_feet_contact,
         weight=0.0,
+        params={
+            "height_threshold": 0.1
+        },
         
     )    
 
     skate_rot_reward = RewTerm(
         func=mdp.skate_rot_reward,
         weight=0.0,
+        params={
+            "distance_threshold": 0.4,
+        },
     )
 
     skate_track_lin_vel_xy_exp = RewTerm(
@@ -751,7 +750,16 @@ class RewardsCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "distance_threshold": 0.15,
-            "target_height": 0.15,
+            "target_height": 0.1,
+        },
+    )
+
+    skate_feet_pose = RewTerm(
+        func=mdp.skate_feet_pose,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+            "distance_threshold": 0.4,
         },
     )
 

@@ -137,7 +137,8 @@ def skate_distance_penalty(
     return reward
 
 def skate_feet_contact(
-    env: ManagerBasedRLEnv
+    env: ManagerBasedRLEnv,
+    height_threshold = float
 ) -> torch.Tensor:
     """Reward for feet contact with skateboard"""
     FR_contact_sensor: ContactSensor = env.scene.sensors["FR_contact"]
@@ -147,22 +148,28 @@ def skate_feet_contact(
     FR_contact_sensor.data.force_matrix_w.squeeze(1)
     cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
      RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
+    heigh_mask = torch.cat([FR_contact_sensor.data.pos_w[..., 2], FL_contact_sensor.data.pos_w[..., 2],
+     RR_contact_sensor.data.pos_w[..., 2], RL_contact_sensor.data.pos_w[..., 2]], dim=1)
     
-    reward = torch.sum(torch.any(cat != 0, dim=2), dim=1).float()
+    heigh_mask = heigh_mask > height_threshold
+    contact_tensor = torch.any(cat != 0, dim=2)
+    contact_tensor &= heigh_mask
+    reward = torch.sum(contact_tensor, dim=1).float()
+
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
 def skate_rot_reward(
     env: ManagerBasedRLEnv,
+    distance_threshold: float,
 ) -> torch.Tensor:
     """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
     # extract the used quantities (to enable type-hinting)
-    vicinity_radius = 0.3
     skate_rot_rel = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
     skate_angle_rel = 2 * torch.acos(torch.clamp(torch.abs(skate_rot_rel[:, 0]), max=1.0))
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
 
-    vicinity_mask = (distance < vicinity_radius).float()
+    vicinity_mask = (distance < distance_threshold).float()
     reward =  skate_angle_rel / torch.pi
     reward = torch.clamp(reward,min=0)
     reward = 1 - reward
@@ -219,6 +226,24 @@ def skate_feet_height(
     reward = torch.sum(foot_z_target_error, dim=1)
     # reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
     reward = torch.where(distance < distance_threshold, reward, 0)
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+def skate_feet_pose(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    distance_threshold: float,
+) -> torch.Tensor:
+    """Reward the swinging feet for clearing a specified height off the ground"""
+    asset: RigidObject = env.scene[asset_cfg.name]
+    foot_pose = asset.data.body_pos_w[:, asset_cfg.body_ids]
+    # FL, FR, RL, RR
+    target_pose = torch.tensor([[1.2, 1.15, 0.1], [1.2, 0.85, 0.1], [0.8, 1.15, 0.1], [0.8, 0.85, 0.1]], device=env.device)
+    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    foot_target_error = torch.linalg.norm(foot_pose - target_pose, dim=2)
+    reward = torch.sum(foot_target_error, dim=1)
+    reward = torch.where(distance < distance_threshold, reward, 0)
+    # reward = torch.exp(-reward / std**2)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -625,6 +650,7 @@ def base_height_l2(
     target_height: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     sensor_cfg: SceneEntityCfg | None = None,
+    distance_threshold = float
 ) -> torch.Tensor:
     """Penalize asset height from its target using L2 squared kernel.
 
@@ -648,7 +674,7 @@ def base_height_l2(
     # Compute the L2 squared penalty
     error = asset.data.root_pos_w[:, 2] - adjusted_target_height
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
-    reward = torch.where(distance < 0.15, error - 0.125, error)
+    reward = torch.where(distance < distance_threshold, error - 0.1, error)
     reward = torch.square(error)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward

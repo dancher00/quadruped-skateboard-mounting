@@ -18,6 +18,7 @@ from robot_lab.assets.unitree import UNITREE_A1_CFG  # isort: skip
 class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     base_link_name = "base"
     foot_link_name = ".*_foot"
+    print(foot_link_name, '-----------------------------------------------')
     # fmt: off
     joint_names = [
         "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
@@ -151,8 +152,11 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.skate_rot_reward.weight = 5.0
         self.rewards.skate_track_lin_vel_xy_exp.weight = 3.0
         self.rewards.skate_distance_reward.weight = 10.0
-        self.rewards.skate_feet_height.weight = -50.0
+        self.rewards.skate_feet_height.weight = 0.0
         self.rewards.skate_feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.rewards.skate_feet_pose.weight = 0.5
+        self.rewards.skate_feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
+        
         
 
         # If the weight of rewards is 0, set rewards to None
