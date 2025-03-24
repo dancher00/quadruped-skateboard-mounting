@@ -145,9 +145,10 @@ def feet_skate_contact(
     RL_contact_sensor: ContactSensor = env.scene.sensors["RL_contact"]
     FR_contact_sensor.data.force_matrix_w.squeeze(1)
     cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
-     RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
+        RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
     
     reward = torch.sum(torch.any(cat != 0, dim=2), dim=1).float()
+    reward = torch.where(reward > 3.5, reward, 0)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 

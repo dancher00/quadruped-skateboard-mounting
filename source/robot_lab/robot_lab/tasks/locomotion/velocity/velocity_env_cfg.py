@@ -105,7 +105,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="/World/envs/env_.*/Skateboard",
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard//ski.usd",
+            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/ski.usd",
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
