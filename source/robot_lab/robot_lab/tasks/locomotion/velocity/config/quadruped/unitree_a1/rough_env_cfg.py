@@ -51,6 +51,8 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.observations.policy.height_scan = None
         self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
+        # self.observations.policy.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
+        # self.observations.critic.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
 
         # ------------------------------Actions------------------------------
         # reduce action scale
@@ -61,8 +63,8 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Events------------------------------
         self.events.randomize_reset_base.params = {
             "pose_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
+                "x": (-0.5, 2.5),
+                "y": (-0.5, 2.5),
                 "z": (0.0, 0.2),
                 "roll": (-3.14, 3.14),
                 "pitch": (-3.14, 3.14),
@@ -154,7 +156,7 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.skate_distance_reward.weight = 10.0
         self.rewards.skate_feet_height.weight = 0.0
         self.rewards.skate_feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.skate_feet_pose.weight = 0.5
+        self.rewards.skate_feet_pose.weight = 0.0
         self.rewards.skate_feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
         
         

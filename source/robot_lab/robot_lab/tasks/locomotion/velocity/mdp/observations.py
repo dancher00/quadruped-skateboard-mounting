@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils.math import euler_xyz_from_quat
+from isaaclab.sensors import ContactSensor
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv, ManagerBasedRLEnv
@@ -51,6 +52,39 @@ def skate_rot_rel(
     skate_rot_euler = euler_xyz_from_quat(skate_rot_quat)
     skate_rot_euler = torch.cat([skate_rot_euler[0].unsqueeze(1), skate_rot_euler[1].unsqueeze(1), skate_rot_euler[2].unsqueeze(1)], dim=1)
     return skate_rot_euler
+
+def skate_feet_positions(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    skate_asset_cfg = SceneEntityCfg,
+) -> torch.Tensor:
+    """Reward the swinging feet for clearing a specified height off the ground"""
+    asset: RigidObject = env.scene[asset_cfg.name]
+    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+    foot_pose = asset.data.body_pos_w[:, asset_cfg.body_ids]
+    skate_pose = skate_asset.data.root_pos_w.unsqueeze(1)
+    skate_pose = skate_pose.repeat(1, 4, 1)
+    target_pose = torch.tensor([[0.2, 0.15, 0.1], [0.2, -0.15, 0.1], [-0.2, 0.15, 0.1], [-0.2, -0.15, 0.1]], device=env.device) + skate_pose
+    relative_pos = target_pose - foot_pose
+    relative_pos = relative_pos.view(*relative_pos.shape[:-2], -1)
+    return relative_pos
+
+def skate_feet_contact_obs(
+    env: ManagerBasedRLEnv,
+) -> torch.Tensor:
+    """Reward for feet contact with skateboard"""
+    FR_contact_sensor: ContactSensor = env.scene.sensors["FR_contact"]
+    FL_contact_sensor: ContactSensor = env.scene.sensors["FL_contact"]
+    RR_contact_sensor: ContactSensor = env.scene.sensors["RR_contact"]
+    RL_contact_sensor: ContactSensor = env.scene.sensors["RL_contact"]
+    FR_contact_sensor.data.force_matrix_w.squeeze(1)
+    cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
+     RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
+    heigh_mask = torch.cat([FR_contact_sensor.data.pos_w[..., 2], FL_contact_sensor.data.pos_w[..., 2],
+     RR_contact_sensor.data.pos_w[..., 2], RL_contact_sensor.data.pos_w[..., 2]], dim=1)
+    
+    contact_tensor = torch.any(cat != 0, dim=2).float()
+    return contact_tensor
 
 # def target_vel(
 #     env: ManagerBasedRLEnv, robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 

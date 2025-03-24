@@ -1,9 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
-     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
-     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter with friction parameters for Isaac Sim -->
 <robot
   name="ski">
+  
+  <material name="wheel_material">
+    <contact>
+      <rolling_friction value="0.1"/>
+      <spinning_friction value="0.1"/>
+      <static_friction value="1.0"/>
+      <dynamic_friction value="1.0"/>
+      <restitution value="0.1"/>
+    </contact>
+  </material>
+  
+  <material name="base_material">
+    <contact>
+      <rolling_friction value="0.05"/>
+      <spinning_friction value="0.05"/>
+      <static_friction value="0.8"/>
+      <dynamic_friction value="0.8"/>
+      <restitution value="0.2"/>
+    </contact>
+  </material>
+  
   <link
     name="base_link">
     <inertial>
@@ -28,11 +47,7 @@
         <mesh
           filename="package://ski/meshes/base_link.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="base_material"/>
     </visual>
     <collision>
       <origin
@@ -42,8 +57,15 @@
         <mesh
           filename="package://ski/meshes/base_link.STL" />
       </geometry>
+      <contact>
+        <static_friction value="0.8"/>
+        <dynamic_friction value="0.8"/>
+        <restitution value="0.2"/>
+      </contact>
+      <material name="base_material"/>
     </collision>
   </link>
+  
   <link
     name="tr0">
     <inertial>
@@ -68,11 +90,7 @@
         <mesh
           filename="package://ski/meshes/tr0.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="base_material"/>
     </visual>
     <collision>
       <origin
@@ -82,8 +100,13 @@
         <mesh
           filename="package://ski/meshes/tr0.STL" />
       </geometry>
+      <contact>
+        <static_friction value="0.6"/>
+        <dynamic_friction value="0.6"/>
+      </contact>
     </collision>
   </link>
+  
   <joint
     name="trj0"
     type="revolute">
@@ -102,6 +125,7 @@
       effort="0"
       velocity="0" />
   </joint>
+  
   <link
     name="wh0">
     <inertial>
@@ -126,11 +150,7 @@
         <mesh
           filename="package://ski/meshes/wh0.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="wheel_material"/>
     </visual>
     <collision>
       <origin
@@ -140,8 +160,17 @@
         <mesh
           filename="package://ski/meshes/wh0.STL" />
       </geometry>
+      <contact>
+        <static_friction value="1.0"/>
+        <dynamic_friction value="1.0"/>
+        <rolling_friction value="0.1"/>
+        <spinning_friction value="0.1"/>
+        <restitution value="0.1"/>
+      </contact>
+      <material name="wheel_material"/>
     </collision>
   </link>
+  
   <joint
     name="whj0"
     type="continuous">
@@ -154,7 +183,9 @@
       link="wh0" />
     <axis
       xyz="0 1 0" />
+    <dynamics damping="0.01" friction="0.01"/>
   </joint>
+  
   <link
     name="wh1">
     <inertial>
@@ -179,11 +210,7 @@
         <mesh
           filename="package://ski/meshes/wh1.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="wheel_material"/>
     </visual>
     <collision>
       <origin
@@ -193,8 +220,17 @@
         <mesh
           filename="package://ski/meshes/wh1.STL" />
       </geometry>
+      <contact>
+        <static_friction value="1.0"/>
+        <dynamic_friction value="1.0"/>
+        <rolling_friction value="0.1"/>
+        <spinning_friction value="0.1"/>
+        <restitution value="0.1"/>
+      </contact>
+      <material name="wheel_material"/>
     </collision>
   </link>
+  
   <joint
     name="whj1"
     type="continuous">
@@ -207,7 +243,9 @@
       link="wh1" />
     <axis
       xyz="0 1 0" />
+    <dynamics damping="0.01" friction="0.01"/>
   </joint>
+  
   <link
     name="tr1">
     <inertial>
@@ -232,11 +270,7 @@
         <mesh
           filename="package://ski/meshes/tr1.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="1 1 1 1" />
-      </material>
+      <material name="base_material"/>
     </visual>
     <collision>
       <origin
@@ -246,8 +280,13 @@
         <mesh
           filename="package://ski/meshes/tr1.STL" />
       </geometry>
+      <contact>
+        <static_friction value="0.6"/>
+        <dynamic_friction value="0.6"/>
+      </contact>
     </collision>
   </link>
+  
   <joint
     name="trj1"
     type="revolute">
@@ -266,6 +305,7 @@
       effort="0"
       velocity="0" />
   </joint>
+  
   <link
     name="wh2">
     <inertial>
@@ -290,11 +330,7 @@
         <mesh
           filename="package://ski/meshes/wh2.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="wheel_material"/>
     </visual>
     <collision>
       <origin
@@ -304,8 +340,17 @@
         <mesh
           filename="package://ski/meshes/wh2.STL" />
       </geometry>
+      <contact>
+        <static_friction value="1.0"/>
+        <dynamic_friction value="1.0"/>
+        <rolling_friction value="0.1"/>
+        <spinning_friction value="0.1"/>
+        <restitution value="0.1"/>
+      </contact>
+      <material name="wheel_material"/>
     </collision>
   </link>
+  
   <joint
     name="whj2"
     type="continuous">
@@ -318,7 +363,9 @@
       link="wh2" />
     <axis
       xyz="0 1 0" />
+    <dynamics damping="0.01" friction="0.01"/>
   </joint>
+  
   <link
     name="wh3">
     <inertial>
@@ -343,11 +390,7 @@
         <mesh
           filename="package://ski/meshes/wh3.STL" />
       </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
+      <material name="wheel_material"/>
     </visual>
     <collision>
       <origin
@@ -357,8 +400,17 @@
         <mesh
           filename="package://ski/meshes/wh3.STL" />
       </geometry>
+      <contact>
+        <static_friction value="1.0"/>
+        <dynamic_friction value="1.0"/>
+        <rolling_friction value="0.1"/>
+        <spinning_friction value="0.1"/>
+        <restitution value="0.1"/>
+      </contact>
+      <material name="wheel_material"/>
     </collision>
   </link>
+  
   <joint
     name="whj3"
     type="continuous">
@@ -371,5 +423,6 @@
       link="wh3" />
     <axis
       xyz="0 1 0" />
+    <dynamics damping="0.01" friction="0.01"/>
   </joint>
 </robot>

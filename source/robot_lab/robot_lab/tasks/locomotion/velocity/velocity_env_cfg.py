@@ -113,7 +113,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="/World/envs/env_.*/Skateboard",
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/urdf/ski/ski.usd",
+            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/ski.usd",
             activate_contact_sensors=False,
         ),
         init_state=ArticulationCfg.InitialStateCfg(
@@ -250,7 +250,7 @@ class ObservationsCfg:
 
         skate_pos_rel = ObsTerm(
             func=mdp.skate_pos_rel,
-            noise=Unoise(n_min=-0.1, n_max=0.1),
+            noise=Unoise(n_min=-0.05, n_max=0.05),
             clip=(-5.0, 5.0),
             scale=1.0,
         )
@@ -261,6 +261,24 @@ class ObservationsCfg:
             clip=(-5*torch.pi, 5*torch.pi),
             scale=1.0,
         )
+
+        skate_feet_contact_obs = ObsTerm(
+            func=mdp.skate_feet_contact_obs,
+            # noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(0, 1),
+            scale=1.0,
+        )
+
+        # skate_feet_positions = ObsTerm(
+        #     func=mdp.skate_feet_positions,
+        #     noise=Unoise(n_min=-0.05, n_max=0.05),
+        #     clip=(-5.0, 5.0),
+        #     scale=1.0,
+        #     params={
+        #     "asset_cfg": SceneEntityCfg("robot", body_names=""),
+        #     "skate_asset_cfg": SceneEntityCfg("skateboard")
+        # },
+        # )
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -317,7 +335,7 @@ class ObservationsCfg:
         )
         skate_pos_rel = ObsTerm(
             func=mdp.skate_pos_rel,
-            noise=Unoise(n_min=-0.1, n_max=0.1),
+            noise=Unoise(n_min=-0.05, n_max=0.05),
             clip=(-5.0, 5.0),
             scale=1.0,
         )
@@ -328,6 +346,24 @@ class ObservationsCfg:
             clip=(-5*torch.pi, 5*torch.pi),
             scale=1.0,
         )
+
+        skate_feet_contact_obs = ObsTerm(
+            func=mdp.skate_feet_contact_obs,
+            # noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(0, 1),
+            scale=1.0,
+        )
+
+        # skate_feet_positions = ObsTerm(
+        #     func=mdp.skate_feet_positions,
+        #     noise=Unoise(n_min=-0.05, n_max=0.05),
+        #     clip=(-5.0, 5.0),
+        #     scale=1.0,
+        #     params={
+        #     "asset_cfg": SceneEntityCfg("robot", body_names=""),
+        #     "skate_asset_cfg": SceneEntityCfg("skateboard")
+        # },
+        # )
 
         def __post_init__(self):
             self.enable_corruption = False
@@ -354,6 +390,18 @@ class EventCfg:
             "num_buckets": 64,
         },
     )
+
+    # randomize_skate_material = EventTerm(
+    #     func=mdp.randomize_rigid_body_material,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("skateboard", body_names=".*"),
+    #         "static_friction_range": (0.8, 1.0),
+    #         "dynamic_friction_range": (0.6, 0.8),
+    #         "restitution_range": (0.0, 0.0),
+    #         "num_buckets": 64,
+    #     },
+    # )
 
     randomize_rigid_body_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
@@ -760,6 +808,7 @@ class RewardsCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "distance_threshold": 0.4,
+            "skate_asset_cfg": SceneEntityCfg("skateboard")
         },
     )
 
