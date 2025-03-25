@@ -115,11 +115,14 @@ class MySceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.UsdFileCfg(
             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/ski.usd",
             activate_contact_sensors=False,
+            articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
+                fix_root_link = True,
+            ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             
-            pos=( 1.0, 1.0, 0.0),
-            # pos=(0.0, 0.0, 0.0),
+            # pos=( 1.0, 1.0, 0.0),
+            pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
                 "trj0": 0.0,
@@ -215,12 +218,13 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        # velocity_commands = ObsTerm(
-        #     func=mdp.generated_commands,
-        #     params={"command_name": "base_velocity"},
-        #     clip=(-100.0, 100.0),
-        #     scale=1.0,
-        # )
+        velocity_commands = ObsTerm(
+            # func=mdp.generated_commands,
+            func=mdp.get_velocity_command,
+            # params={"command_name": "base_velocity"},
+            clip=(-100.0, 100.0),
+            scale=1.0,
+        )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -304,12 +308,13 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        # velocity_commands = ObsTerm(
-        #     func=mdp.generated_commands,
-        #     params={"command_name": "base_velocity"},
-        #     clip=(-100.0, 100.0),
-        #     scale=1.0,
-        # )
+        velocity_commands = ObsTerm(
+            # func=mdp.generated_commands,
+            func=mdp.get_velocity_command,
+            # params={"command_name": "base_velocity"},
+            clip=(-100.0, 100.0),
+            scale=1.0,
+        )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -521,7 +526,6 @@ class RewardsCfg:
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "sensor_cfg": SceneEntityCfg("height_scanner_base"),
             "target_height": 0.0,
-            "distance_threshold": 0.4
         },
     )
     body_lin_acc_l2 = RewTerm(
@@ -582,7 +586,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
-            "distance_threshold": 0.4,
+            "velocity_threshold": 0.5,
             "command_threshold": 0.1,
         },
     )
@@ -838,13 +842,13 @@ class CurriculumCfg:
 
     terrain_levels = CurrTerm(func=mdp.terrain_levels_vel)
 
-    # command_levels = CurrTerm(
-    #     func=mdp.command_levels_vel,
-    #     params={
-    #         "reward_term_name": "track_lin_vel_xy_exp",
-    #         "max_curriculum": 1.5,
-    #     },
-    # )
+    command_levels = CurrTerm(
+        func=mdp.command_levels_vel,
+        params={
+            "reward_term_name": "track_lin_vel_xy_exp",
+            "max_curriculum": 1.5,
+        },
+    )
 
 
 ##

@@ -63,8 +63,8 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Events------------------------------
         self.events.randomize_reset_base.params = {
             "pose_range": {
-                "x": (-0.5, 2.5),
-                "y": (-0.5, 2.5),
+                "x": (-1.5, 1.5),
+                "y": (-1.5, 1.5),
                 "z": (0.0, 0.2),
                 "roll": (-3.14, 3.14),
                 "pitch": (-3.14, 3.14),
@@ -123,15 +123,15 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
         # Velocity-tracking rewards
-        self.rewards.track_lin_vel_xy_exp.weight = 0.0
-        self.rewards.track_ang_vel_z_exp.weight = 0.0
+        self.rewards.track_lin_vel_xy_exp.weight = 3.0
+        self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
         self.rewards.feet_air_time.weight = 0
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_contact_without_cmd.weight = 0.0
+        self.rewards.feet_contact_without_cmd.weight = 0.1
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_stumble.weight = -0.1
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -151,9 +151,9 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # skate rewards
         self.rewards.skate_distance_penalty.weight = 0.0
         self.rewards.skate_feet_contact.weight = 5.0
-        self.rewards.skate_rot_reward.weight = 5.0
-        self.rewards.skate_track_lin_vel_xy_exp.weight = 3.0
-        self.rewards.skate_distance_reward.weight = 10.0
+        self.rewards.skate_rot_reward.weight = 0.0
+        self.rewards.skate_track_lin_vel_xy_exp.weight = 0.0
+        self.rewards.skate_distance_reward.weight = 0.0
         self.rewards.skate_feet_height.weight = 0.0
         self.rewards.skate_feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.skate_feet_pose.weight = 0.0

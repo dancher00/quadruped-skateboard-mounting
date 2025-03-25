@@ -12,7 +12,7 @@ from isaaclab.managers import ManagerTermBase
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor, RayCaster
-from isaaclab.utils.math import quat_rotate_inverse, yaw_quat
+from isaaclab.utils.math import quat_rotate_inverse, yaw_quat, euler_xyz_from_quat
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -26,7 +26,7 @@ def track_lin_vel_xy_exp(
     asset: RigidObject = env.scene[asset_cfg.name]
     # compute the error
     lin_vel_error = torch.sum(
-        torch.square(env.command_manager.get_command(command_name)[:, :2] - asset.data.root_lin_vel_b[:, :2]),
+        torch.square(get_velocity_command(env)[:, :2] - asset.data.root_lin_vel_b[:, :2]),
         dim=1,
     )
     reward = torch.exp(-lin_vel_error / std**2)
@@ -41,7 +41,7 @@ def track_ang_vel_z_exp(
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     # compute the error
-    ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_b[:, 2])
+    ang_vel_error = torch.square(get_velocity_command(env)[:, 2] - asset.data.root_ang_vel_b[:, 2])
     reward = torch.exp(-ang_vel_error / std**2)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
@@ -55,7 +55,7 @@ def track_lin_vel_xy_yaw_frame_exp(
     asset = env.scene[asset_cfg.name]
     vel_yaw = quat_rotate_inverse(yaw_quat(asset.data.root_quat_w), asset.data.root_lin_vel_w[:, :3])
     lin_vel_error = torch.sum(
-        torch.square(env.command_manager.get_command(command_name)[:, :2] - vel_yaw[:, :2]), dim=1
+        torch.square(get_velocity_command(env)[:, :2] - vel_yaw[:, :2]), dim=1
     )
     reward = torch.exp(-lin_vel_error / std**2)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
@@ -68,7 +68,7 @@ def track_ang_vel_z_world_exp(
     """Reward tracking of angular velocity commands (yaw) in world frame using exponential kernel."""
     # extract the used quantities (to enable type-hinting)
     asset = env.scene[asset_cfg.name]
-    ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_w[:, 2])
+    ang_vel_error = torch.square(get_velocity_command(env)[:, 2] - asset.data.root_ang_vel_w[:, 2])
     reward = torch.exp(-ang_vel_error / std**2)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
@@ -99,7 +99,7 @@ def stand_still_without_cmd(
     # compute out of limits constraints
     diff_angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
     reward = torch.sum(torch.abs(diff_angle), dim=1)
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) < command_threshold
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) < command_threshold
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -109,20 +109,20 @@ def joint_pos_penalty(
     command_name: str,
     asset_cfg: SceneEntityCfg,
     stand_still_scale: float,
-    distance_threshold: float,
+    velocity_threshold: float,
     command_threshold: float,
 ) -> torch.Tensor:
     """Penalize joint position error from default on the articulation."""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
-    # cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1)
+    cmd = torch.linalg.norm(get_velocity_command(env), dim=1)
     body_vel = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
     running_reward = torch.linalg.norm(
         (asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]), dim=1
     )
-    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
     reward = torch.where(
-        distance > distance_threshold,
+        torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
         running_reward,
         stand_still_scale * running_reward,
     )
@@ -135,8 +135,7 @@ def skate_distance_penalty(
 ) -> torch.Tensor:
     """Penalize distance between skateboard and robot"""
     # extract the used quantities (to enable type-hinting)
-    reward = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
-    return reward
+    return env.episode_length_buf
 
 def skate_feet_contact(
     env: ManagerBasedRLEnv,
@@ -156,7 +155,11 @@ def skate_feet_contact(
     heigh_mask = heigh_mask > height_threshold
     contact_tensor = torch.any(cat != 0, dim=2)
     contact_tensor &= heigh_mask
-    reward = torch.sum(contact_tensor, dim=1).float()
+    contact_tensor = contact_tensor.float()
+    # contact_tensor *= torch.tensor([1, 1, 1.5, 1.5], device = env.device)
+    reward = torch.sum(contact_tensor, dim=1)
+    episode_len = env.episode_length_buf
+    reward = torch.where(episode_len > 300, reward, 0)
     # reward = torch.where(reward > 3.5, reward, 0)
     # reward = torch.square(reward)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
@@ -232,7 +235,7 @@ def skate_feet_height(
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
     foot_z_target_error = torch.square(foot_heigh - target_height)
     reward = torch.sum(foot_z_target_error, dim=1)
-    # reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) > 0.1
     reward = torch.where(distance < distance_threshold, reward, 0)
     return reward
 
@@ -408,7 +411,7 @@ def feet_air_time(
     t_max = torch.max(current_air_time, current_contact_time)
     t_min = torch.clip(t_max, max=mode_time)
     stance_cmd_reward = torch.clip(current_contact_time - current_air_time, -mode_time, mode_time)
-    cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1).unsqueeze(dim=1).expand(-1, 4)
+    cmd = torch.linalg.norm(get_velocity_command(env), dim=1).unsqueeze(dim=1).expand(-1, 4)
     body_vel = torch.linalg.norm(asset.data.root_com_lin_vel_b[:, :2], dim=1).unsqueeze(dim=1).expand(-1, 4)
     reward = torch.where(
         torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
@@ -430,7 +433,7 @@ def feet_contact(
     contact_num = torch.sum(contact, dim=1)
     reward = (contact_num != expect_contact_num).float()
     # no reward for zero command
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) > 0.1
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -442,7 +445,7 @@ def feet_contact_without_cmd(env: ManagerBasedRLEnv, command_name: str, sensor_c
     # compute the reward
     contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
     reward = torch.sum(contact, dim=-1).float()
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) < 0.1
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) < 0.1
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -539,7 +542,7 @@ def feet_height(
     )
     reward = torch.sum(foot_z_target_error * foot_velocity_tanh, dim=1)
     # no reward for zero command
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) > 0.1
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -569,7 +572,7 @@ def feet_height_body(
     foot_z_target_error = torch.square(footpos_in_body_frame[:, :, 2] - target_height).view(env.num_envs, -1)
     foot_velocity_tanh = torch.tanh(tanh_mult * torch.norm(footvel_in_body_frame[:, :, :2], dim=2))
     reward = torch.sum(foot_z_target_error * foot_velocity_tanh, dim=1)
-    # reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) > 0.1
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     reward = torch.clamp(reward, 0, 0.1)
     return reward
@@ -633,7 +636,7 @@ def wheel_vel_penalty(
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     asset: Articulation = env.scene[asset_cfg.name]
-    cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1)
+    cmd = torch.linalg.norm(get_velocity_command(env), dim=1)
     body_vel = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
     joint_vel = torch.abs(asset.data.joint_vel[:, asset_cfg.joint_ids])
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
@@ -687,8 +690,8 @@ def base_height_l2(
         adjusted_target_height = target_height
     # Compute the L2 squared penalty
     error = asset.data.root_pos_w[:, 2] - adjusted_target_height
-    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
-    reward = torch.where(distance < distance_threshold, error - 0.1, error)
+    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+    # reward = torch.where(distance < distance_threshold, error - 0.1, error)
     reward = torch.square(error)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     reward = torch.clamp(reward, 0, 0.5)
@@ -738,3 +741,55 @@ def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scen
     reward = torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
+
+
+
+def get_velocity_command(env: ManagerBasedRLEnv,
+                          ) -> torch.Tensor:
+  
+    # velocity_command near skate
+    # _, _, yaw = euler_xyz_from_quat(env.scene["skate_transform"].data.target_quat_source.squeeze(1))
+    # yaw[yaw > torch.pi] -= 2 * torch.pi
+    # velocity_command_near = torch.zeros(yaw.shape[0], 3, device=env.device)
+    # velocity_command_near[:, 2] = yaw / torch.pi
+
+    # target_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2]
+
+    # velocity_command_near[:, :2] = 2*target_pos
+
+    # # velocity_command far from skate
+    # velocity_command_far = torch.zeros(target_pos.shape[0], 3, device=env.device)  # Create an empty tensor for the result
+    # for i in range(target_pos.shape[0]):
+    #     velocity_command_far[i, 2] = torch.atan2(target_pos[i, 1], target_pos[i, 0]) / torch.pi
+    # velocity_command_far[:, 0] = 1 - torch.abs(velocity_command_far[:, 2])
+
+    # distance_threshold = 0.5
+    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1, keepdim=True)
+    # velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
+
+    # Extract yaw from quaternion and normalize it to the range (-pi, pi)
+    _, _, yaw = euler_xyz_from_quat(env.scene["skate_transform"].data.target_quat_source.squeeze(1))
+    yaw = torch.where(yaw > torch.pi, yaw - 2 * torch.pi, yaw)
+
+    # Get target positions
+    target_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2]
+
+    # Calculate velocity command for the near case
+    velocity_command_near = torch.zeros(yaw.shape[0], 3, device=env.device)
+    velocity_command_near[:, 2] = yaw / torch.pi
+    velocity_command_near[:, :2] = 2 * target_pos
+
+    # Calculate velocity command for the far case
+    # Using vectorized operations instead of a loop
+    atan2_values = torch.atan2(target_pos[:, 1], target_pos[:, 0]) / torch.pi
+    velocity_command_far = torch.zeros(target_pos.shape[0], 3, device=env.device)
+    velocity_command_far[:, 2] = atan2_values
+    velocity_command_far[:, 0] = 1 - torch.abs(atan2_values)
+
+    # Compute distance and determine which command to use
+    distance_threshold = 0.5
+    distance = torch.linalg.norm(target_pos, dim=1, keepdim=True)
+    velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
+
+    return velocity_command
+    
