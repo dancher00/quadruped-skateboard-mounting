@@ -133,7 +133,7 @@ This stops and removes the containers, but keeps the images.
 
 </details>
 
-## Launch the Skateboard 
+## Launch the Skateboard Climbing
 
 Lanch a train:
 ```
@@ -143,33 +143,6 @@ python scripts/rsl_rl/base/train.py --task RobotLab-Isaac-Velocity-Flat-Unitree-
 Lanch a play:
 ```
 python scripts/rsl_rl/base/play.py --task RobotLab-Isaac-Velocity-Flat-Unitree-A1-v0
-```
-
-## Try examples
-
-> [!NOTE]
-> If you want to control a **SINGLE ROBOT** with the keyboard during playback, add `--keyboard` at the end of the play script.
->
-> ```
-> Key bindings:
-> ====================== ========================= ========================
-> Command                Key (+ve axis)            Key (-ve axis)
-> ====================== ========================= ========================
-> Move along x-axis      Numpad 8 / Arrow Up       Numpad 2 / Arrow Down
-> Move along y-axis      Numpad 4 / Arrow Right    Numpad 6 / Arrow Left
-> Rotate along z-axis    Numpad 7 / Z              Numpad 9 / X
-> ====================== ========================= ========================
-> ```
-
-### Quadruped
-
-Unitree A1
-
-```bash
-# Train
-python scripts/rsl_rl/base/train.py --task RobotLab-Isaac-Velocity-Rough-Unitree-A1-v0 --headless
-# Play
-python scripts/rsl_rl/base/play.py --task RobotLab-Isaac-Velocity-Rough-Unitree-A1-v0
 ```
 
 
@@ -199,12 +172,7 @@ In some VsCode versions, the indexing of part of the extensions is missing. In t
 Please cite the following if you use this code or parts of it:
 
 ```
-@software{fan-ziqi2024robot_lab,
-  author = {Ziqi Fan},
-  title = {robot_lab: RL Extension Library for Robots, Based on IsaacLab.},
-  url = {https://github.com/fan-ziqi/robot_lab},
-  year = {2024}
-}
+
 ```
 
 ## Acknowledgements
