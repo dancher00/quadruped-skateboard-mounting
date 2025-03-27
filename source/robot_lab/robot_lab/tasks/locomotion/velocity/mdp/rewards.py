@@ -259,6 +259,14 @@ def skate_feet_pose(
     reward = torch.clamp(reward, 0, 4)
     return reward
 
+def skateboard_upward(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalty for skateboard being tilted or upside down."""
+    skateboard = env.scene["skateboard"]
+    upward = skateboard.data.projected_gravity_b[:, 2]  # +1 = вверх, -1 = перевёрнуто
+    reward = torch.square(1 - upward)
+    reward = torch.clamp(reward, 0, 10)
+    return reward
+
 class GaitReward(ManagerTermBase):
     """Gait enforcing reward term for quadrupeds.
 

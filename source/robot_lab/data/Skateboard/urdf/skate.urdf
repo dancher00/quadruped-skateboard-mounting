@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Skateboard">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-3.90900970040696E-07 1.65554556660567E-08 0.0803398063222811"
+        rpy="0 0 0" />
+      <mass
+        value="1.87355927123978" />
+      <inertia
+        ixx="0.00903114129612671"
+        ixy="-1.58213084430304E-08"
+        ixz="-4.399022323366E-09"
+        iyy="0.0474941673494156"
+        iyz="1.8618547459719E-10"
+        izz="0.0564670480761005" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="tr0">
+    <inertial>
+      <origin
+        xyz="-0.00394785875464684 1.37510124957975E-05 0.00254298733552262"
+        rpy="0 0 0" />
+      <mass
+        value="0.054711382215971" />
+      <inertia
+        ixx="7.61776062793999E-05"
+        ixy="4.24208360983496E-09"
+        ixz="-1.67941899830751E-07"
+        iyy="6.50792133855701E-06"
+        iyz="3.53198528592784E-09"
+        izz="7.70651806985149E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/tr0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/tr0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="trj0"
+    type="revolute">
+    <origin
+      xyz="0.248451238407881 0 0.0249999999999996"
+      rpy="0 0.380444263902653 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="tr0" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-0.227799"
+      upper="0.227799"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="wh0">
+    <inertial>
+      <origin
+        xyz="0 -3.7470027081099E-16 -6.24847396046846E-15"
+        rpy="0 0 0" />
+      <mass
+        value="0.0490782123073816" />
+      <inertia
+        ixx="1.14097578389298E-05"
+        ixy="-2.95578023787108E-23"
+        ixz="5.51817720020061E-24"
+        iyy="1.63120870051882E-05"
+        iyz="5.05450120212838E-22"
+        izz="1.14097578389298E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="whj0"
+    type="continuous">
+    <origin
+      xyz="0 -0.079 0"
+      rpy="-3.1416 -0.38044 0" />
+    <parent
+      link="tr0" />
+    <child
+      link="wh0" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="wh1">
+    <inertial>
+      <origin
+        xyz="0 -4.16333634234434E-16 -6.21377949094892E-15"
+        rpy="0 0 0" />
+      <mass
+        value="0.0490782123073816" />
+      <inertia
+        ixx="1.14097578389298E-05"
+        ixy="-2.95578023787108E-23"
+        ixz="5.50508017383537E-24"
+        iyy="1.63120870051882E-05"
+        iyz="5.04008068678283E-22"
+        izz="1.14097578389298E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="whj1"
+    type="continuous">
+    <origin
+      xyz="0 0.079 0"
+      rpy="-3.1416 -0.38044 0" />
+    <parent
+      link="tr0" />
+    <child
+      link="wh1" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="tr1">
+    <inertial>
+      <origin
+        xyz="-0.00394785564541764 1.37474025140887E-05 0.0025429982740449"
+        rpy="0 0 0" />
+      <mass
+        value="0.0547113523962588" />
+      <inertia
+        ixx="7.61776015347802E-05"
+        ixy="4.24279245655275E-09"
+        ixz="-1.67936058589737E-07"
+        iyy="6.50790703894931E-06"
+        iyz="3.5340498258754E-09"
+        izz="7.70651635533687E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/tr1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/tr1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="trj1"
+    type="revolute">
+    <origin
+      xyz="-0.248451238407882 0 0.025"
+      rpy="0 0.380444263902653 3.14159265358979" />
+    <parent
+      link="base_link" />
+    <child
+      link="tr1" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-0.227799"
+      upper="0.227799"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="wh2">
+    <inertial>
+      <origin
+        xyz="2.13717932240343E-15 0.0159999999999954 8.67361737988404E-17"
+        rpy="0 0 0" />
+      <mass
+        value="0.0490782123073816" />
+      <inertia
+        ixx="1.14097578389298E-05"
+        ixy="-2.91712946886286E-23"
+        ixz="-8.02234876879247E-23"
+        iyy="1.63120870051882E-05"
+        iyz="5.04019026293652E-22"
+        izz="1.14097578389298E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="whj2"
+    type="continuous">
+    <origin
+      xyz="0 0.063 0"
+      rpy="3.1416 0.38044 3.1416" />
+    <parent
+      link="tr1" />
+    <child
+      link="wh2" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="wh3">
+    <inertial>
+      <origin
+        xyz="2.4980018054066E-15 -0.0160000000000055 4.1286418728248E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.0490782123073816" />
+      <inertia
+        ixx="1.14097578389298E-05"
+        ixy="4.15744681797579E-22"
+        ixz="-1.28506924098295E-23"
+        iyy="1.63120870051882E-05"
+        iyz="-1.51826352916935E-20"
+        izz="1.14097578389298E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Skateboard/meshes/wh3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="whj3"
+    type="continuous">
+    <origin
+      xyz="0 -0.063 0"
+      rpy="3.1416 0.38044 3.1416" />
+    <parent
+      link="tr1" />
+    <child
+      link="wh3" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+</robot>

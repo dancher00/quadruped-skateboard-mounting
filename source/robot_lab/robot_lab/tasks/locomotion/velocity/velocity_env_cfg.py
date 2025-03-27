@@ -113,7 +113,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="/World/envs/env_.*/Skateboard",
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/ski.usd",
+            usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/usd/skate.usd",
             activate_contact_sensors=False,
             articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
                 fix_root_link = True,
@@ -814,6 +814,11 @@ class RewardsCfg:
             "distance_threshold": 0.4,
             "skate_asset_cfg": SceneEntityCfg("skateboard")
         },
+    )
+
+    skateboard_upward = RewTerm(
+        func=mdp.skateboard_upward,
+        weight=0.0,
     )
 
 @configclass

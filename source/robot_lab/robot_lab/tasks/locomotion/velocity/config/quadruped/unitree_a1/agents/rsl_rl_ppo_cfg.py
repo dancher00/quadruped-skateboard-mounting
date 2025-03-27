@@ -15,8 +15,10 @@ class UnitreeA1RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     clip_actions = 10
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
+        actor_hidden_dims=[1024, 512, 256],
+        critic_hidden_dims=[1024, 512, 256],
+        # actor_hidden_dims=[512, 256, 128],
+        # critic_hidden_dims=[512, 256, 128],
         activation="elu",
     )
     algorithm = RslRlPpoAlgorithmCfg(
