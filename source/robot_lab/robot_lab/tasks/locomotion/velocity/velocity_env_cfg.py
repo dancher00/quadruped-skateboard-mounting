@@ -219,9 +219,9 @@ class ObservationsCfg:
             scale=1.0,
         )
         velocity_commands = ObsTerm(
-            # func=mdp.generated_commands,
-            func=mdp.get_velocity_command,
-            # params={"command_name": "base_velocity"},
+            func=mdp.generated_commands,
+            #func=mdp.get_velocity_command,
+            params={"command_name": "base_velocity"},
             clip=(-100.0, 100.0),
             scale=1.0,
         )
