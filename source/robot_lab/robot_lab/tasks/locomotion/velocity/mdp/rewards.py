@@ -130,12 +130,6 @@ def joint_pos_penalty(
     reward = torch.clamp(reward, 0, 5)
     return reward
 
-def skate_distance_penalty(
-    env: ManagerBasedRLEnv,
-) -> torch.Tensor:
-    """Penalize distance between skateboard and robot"""
-    # extract the used quantities (to enable type-hinting)
-    return env.episode_length_buf
 
 def skate_feet_contact(
     env: ManagerBasedRLEnv,
@@ -161,14 +155,14 @@ def skate_feet_contact(
     episode_len = env.episode_length_buf
     reward = torch.where(episode_len > 300, reward, 0)
     # reward = torch.where(reward > 3.5, reward, 0)
-    # reward = torch.square(reward)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     reward = torch.clamp(reward, 0, 16)
     return reward
 
-def skate_rot_reward(
+def skate_orientation_tracking(
     env: ManagerBasedRLEnv,
     distance_threshold: float,
+    std: float,
 ) -> torch.Tensor:
     """Penalize relative (between robot and skateboard) frame orinetation error in vicinity of skateboard"""
     # extract the used quantities (to enable type-hinting)
@@ -177,94 +171,44 @@ def skate_rot_reward(
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1), dim=1)
 
     vicinity_mask = (distance < distance_threshold).float()
-    reward =  skate_angle_rel / torch.pi
-    reward = torch.clamp(reward,min=0)
-    reward = 1 - reward
+    error =  skate_angle_rel / torch.pi
+    error = torch.clamp(error,min=0)
+    reward = torch.exp(-error / std**2)
     reward = reward * vicinity_mask
+    reward = torch.where(env.episode_length_buf > 300, reward, 0)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
-    reward = torch.clamp(reward, 0, 1)
     return reward
 
-def skate_track_lin_vel_xy_exp(
-    env: ManagerBasedRLEnv, std: float, robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 
-    skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard")
-) -> torch.Tensor:
-    """Reward tracking of linear velocity commands (xy axes) using exponential kernel."""
-    # extract the used quantities (to enable type-hinting)
-    robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
-    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
 
-    target_vel = skate_asset.data.root_pos_w[:, :2] - robot_asset.data.root_pos_w[:, :2]
-    # target_vel = robot_asset.data.root_pos_w[:, :2] - skate_asset.data.root_pos_w[:, :2]
-    norm_v = torch.norm(target_vel, dim=1, keepdim=True)
-    norm_v = norm_v.repeat(1, 2)
-    vector_norm = 0.5
-    unit_vector = target_vel / norm_v
-    target_vel[norm_v > vector_norm] = unit_vector[norm_v > vector_norm] * vector_norm
-
-    # compute the error
-    lin_vel_error = torch.sum(
-        torch.square(target_vel - robot_asset.data.root_lin_vel_w[:, :2]),
-        dim=1,
-    )
-    reward = torch.exp(-lin_vel_error / std**2)
-    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
-    reward = torch.clamp(reward, 0, 2)
-    return reward
-
-def skate_distance_reward(
+def skate_distance_tracking(
     env: ManagerBasedRLEnv,
+    std: float,
 ) -> torch.Tensor:
     """Penalize distance between skateboard and robot"""
     # extract the used quantities (to enable type-hinting)
     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
-    reward = torch.clamp(1 - distance, min=0)
+    reward = torch.exp(-distance / std**2)
+    reward = torch.where(env.episode_length_buf > 300, reward, 0)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
-    reward = torch.clamp(reward, 0, 10)
-    return reward
-
-def skate_feet_height(
-    env: ManagerBasedRLEnv,
-    asset_cfg: SceneEntityCfg,
-    target_height: float,
-    distance_threshold: float,
-) -> torch.Tensor:
-    """Reward the swinging feet for clearing a specified height off the ground"""
-    asset: RigidObject = env.scene[asset_cfg.name]
-    foot_heigh = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
-    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
-    foot_z_target_error = torch.square(foot_heigh - target_height)
-    reward = torch.sum(foot_z_target_error, dim=1)
-    reward *= torch.linalg.norm(get_velocity_command(env), dim=1) > 0.1
-    reward = torch.where(distance < distance_threshold, reward, 0)
-    return reward
-
-def skate_feet_pose(
-    env: ManagerBasedRLEnv,
-    asset_cfg: SceneEntityCfg,
-    distance_threshold: float,
-    skate_asset_cfg = SceneEntityCfg,
-) -> torch.Tensor:
-    """Reward the swinging feet for clearing a specified height off the ground"""
-    asset: RigidObject = env.scene[asset_cfg.name]
-    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
-    foot_pose = asset.data.body_pos_w[:, asset_cfg.body_ids]
-    skate_pose = skate_asset.data.root_pos_w.unsqueeze(1)
-    skate_pose = skate_pose.repeat(1, 4, 1)
-    target_pose = torch.tensor([[0.2, 0.15, 0.1], [0.2, -0.15, 0.1], [-0.2, 0.15, 0.1], [-0.2, -0.15, 0.1]], device=env.device) + skate_pose
-    distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
-    foot_target_error = torch.linalg.norm(foot_pose - target_pose, dim=2)
-    reward = torch.sum(foot_target_error, dim=1)
-    reward = torch.where(distance < distance_threshold, reward, 0)
-    reward = torch.clamp(reward, 0, 4)
     return reward
 
 def skateboard_upward(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Penalty for skateboard being tilted or upside down."""
     skateboard = env.scene["skateboard"]
-    upward = skateboard.data.projected_gravity_b[:, 2]  # +1 = вверх, -1 = перевёрнуто
-    reward = torch.square(1 - upward)
-    reward = torch.clamp(reward, 0, 10)
+    upward = skateboard.data.projected_gravity_b[:, 2]
+    reward = upward > 0
+    # print(reward.shape)
+    return reward
+
+def skate_velocity_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+) -> torch.Tensor:
+    """Penalize skate velocity on stage 2 (climbing)."""
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    skate_vel = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
+    reward = torch.clamp(skate_vel, 0, 5)
     return reward
 
 class GaitReward(ManagerTermBase):
@@ -750,54 +694,60 @@ def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scen
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
-
+# Helper functions
 
 def get_velocity_command(env: ManagerBasedRLEnv,
                           ) -> torch.Tensor:
-  
-    # velocity_command near skate
-    # _, _, yaw = euler_xyz_from_quat(env.scene["skate_transform"].data.target_quat_source.squeeze(1))
-    # yaw[yaw > torch.pi] -= 2 * torch.pi
-    # velocity_command_near = torch.zeros(yaw.shape[0], 3, device=env.device)
-    # velocity_command_near[:, 2] = yaw / torch.pi
-
-    # target_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2]
-
-    # velocity_command_near[:, :2] = 2*target_pos
-
-    # # velocity_command far from skate
-    # velocity_command_far = torch.zeros(target_pos.shape[0], 3, device=env.device)  # Create an empty tensor for the result
-    # for i in range(target_pos.shape[0]):
-    #     velocity_command_far[i, 2] = torch.atan2(target_pos[i, 1], target_pos[i, 0]) / torch.pi
-    # velocity_command_far[:, 0] = 1 - torch.abs(velocity_command_far[:, 2])
-
-    # distance_threshold = 0.5
-    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1, keepdim=True)
-    # velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
-
-    # Extract yaw from quaternion and normalize it to the range (-pi, pi)
-    _, _, yaw = euler_xyz_from_quat(env.scene["skate_transform"].data.target_quat_source.squeeze(1))
-    yaw = torch.where(yaw > torch.pi, yaw - 2 * torch.pi, yaw)
-
-    # Get target positions
-    target_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2]
-
-    # Calculate velocity command for the near case
-    velocity_command_near = torch.zeros(yaw.shape[0], 3, device=env.device)
-    velocity_command_near[:, 2] = yaw / torch.pi
-    velocity_command_near[:, :2] = 2 * target_pos
-
-    # Calculate velocity command for the far case
-    # Using vectorized operations instead of a loop
-    atan2_values = torch.atan2(target_pos[:, 1], target_pos[:, 0]) / torch.pi
-    velocity_command_far = torch.zeros(target_pos.shape[0], 3, device=env.device)
-    velocity_command_far[:, 2] = atan2_values
-    velocity_command_far[:, 0] = 1 - torch.abs(atan2_values)
-
-    # Compute distance and determine which command to use
-    distance_threshold = 0.5
-    distance = torch.linalg.norm(target_pos, dim=1, keepdim=True)
-    velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
-
-    return velocity_command
     
+    stage = env.cfg.stage
+    distance_threshold = 0.5
+
+    if stage == 0:
+        return env.command_manager.get_command("base_velocity")
+    
+    elif stage == 1:
+        # Extract yaw from quaternion and normalize it to the range (-pi, pi)
+        _, _, yaw = euler_xyz_from_quat(env.scene["skate_transform"].data.target_quat_source.squeeze(1))
+        yaw = torch.where(yaw > torch.pi, yaw - 2 * torch.pi, yaw)
+
+        # Get target positions
+        target_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2]
+
+        # Calculate velocity command for the near case
+        velocity_command_near = torch.zeros(yaw.shape[0], 3, device=env.device)
+        velocity_command_near[:, 2] = yaw / torch.pi
+        velocity_command_near[:, :2] = 2 * target_pos
+
+        # Calculate velocity command for the far case
+        # Using vectorized operations instead of a loop
+        atan2_values = torch.atan2(target_pos[:, 1], target_pos[:, 0]) / torch.pi
+        velocity_command_far = torch.zeros(target_pos.shape[0], 3, device=env.device)
+        velocity_command_far[:, 2] = atan2_values
+        velocity_command_far[:, 0] = 1 - torch.abs(atan2_values)
+
+        # Compute distance and determine which command to use
+        distance = torch.linalg.norm(target_pos, dim=1, keepdim=True)
+        velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
+
+        return velocity_command
+
+def get_skate_velocity_command(env: ManagerBasedRLEnv,
+                          ) -> torch.Tensor:
+    stage = env.cfg.stage
+    if stage == 0 or stage == 1:
+        return torch.zeros((env.num_envs, 2), device = env.device)
+    
+    elif stage == 2:
+        return torch.where(get_mode(env) == 1, torch.tensor([0.1, 0], device = env.device), torch.tensor([0, 0], device = env.device))
+    
+
+def get_mode(env: ManagerBasedRLEnv) -> torch.Tensor:
+
+    stage = env.cfg.stage
+    if stage == 0 or stage == 1:
+        return torch.zeros((env.num_envs, 1), device = env.device)
+
+    if hasattr(env, 'episode_length_buf'):
+        return torch.where(env.episode_length_buf > 300, 1, 0).unsqueeze(1).float()
+    else:
+        return torch.zeros((env.num_envs, 1), device = env.device)

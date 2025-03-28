@@ -149,17 +149,14 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 3.0
 
         # skate rewards
-        self.rewards.skate_distance_penalty.weight = 0.0
-        self.rewards.skate_feet_contact.weight = 0.0
-        self.rewards.skate_rot_reward.weight = 0.0
-        self.rewards.skate_track_lin_vel_xy_exp.weight = 0.0
-        self.rewards.skate_distance_reward.weight = 0.0
-        self.rewards.skate_feet_height.weight = 0.0
-        self.rewards.skate_feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.skate_feet_pose.weight = 0.0
-        self.rewards.skate_feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.rewards.skate_feet_contact.weight = 5.0
+        self.rewards.skate_orientation_tracking.weight = 1.0
+        self.rewards.skate_distance_tracking.weight = 1.0
+        self.rewards.skateboard_upward.weight = -10.0
+        self.rewards.skate_velocity_penalty.weight = -1.0
 
-        self.rewards.skateboard_upward.weight = 0.0
+        # stage
+        self.stage = 1
         
         
 
@@ -168,23 +165,23 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------
-        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name]
+        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name]
 
 
         # ------------------------------Terminations------------------------------
-        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
-            # Main body parts
-            "base",              # Base link
+        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
+        #     # Main body parts
+        #     "base",              # Base link
 
-            # Legs (excluding feet)
-            ".*_hip",          
-            ".*_thigh",        
-            ".*_calf"      
-        ]
+        #     # Legs (excluding feet)
+        #     ".*_hip",          
+        #     ".*_thigh",        
+        #     ".*_calf"      
+        # ]
 
         # self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
         self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.33, 0.66)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)

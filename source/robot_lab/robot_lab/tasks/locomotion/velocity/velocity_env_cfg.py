@@ -115,9 +115,9 @@ class MySceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.UsdFileCfg(
             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/usd/skate.usd",
             activate_contact_sensors=False,
-            articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
-                fix_root_link = True,
-            ),
+            # articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
+            #     fix_root_link = True,
+            # ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             
@@ -221,7 +221,6 @@ class ObservationsCfg:
         velocity_commands = ObsTerm(
             # func=mdp.generated_commands,
             func=mdp.get_velocity_command,
-            # params={"command_name": "base_velocity"},
             clip=(-100.0, 100.0),
             scale=1.0,
         )
@@ -273,6 +272,18 @@ class ObservationsCfg:
             scale=1.0,
         )
 
+        mode = ObsTerm(
+            func=mdp.get_mode,
+            clip=(0, 1),
+            scale=1.0,
+        )
+
+        skate_velocity_command = ObsTerm(
+            func=mdp.get_skate_velocity_command,
+            clip=(0, 1),
+            scale=1.0,
+        )
+        
         # skate_feet_positions = ObsTerm(
         #     func=mdp.skate_feet_positions,
         #     noise=Unoise(n_min=-0.05, n_max=0.05),
@@ -311,7 +322,6 @@ class ObservationsCfg:
         velocity_commands = ObsTerm(
             # func=mdp.generated_commands,
             func=mdp.get_velocity_command,
-            # params={"command_name": "base_velocity"},
             clip=(-100.0, 100.0),
             scale=1.0,
         )
@@ -355,6 +365,18 @@ class ObservationsCfg:
         skate_feet_contact_obs = ObsTerm(
             func=mdp.skate_feet_contact_obs,
             # noise=Unoise(n_min=-0.1, n_max=0.1),
+            clip=(0, 1),
+            scale=1.0,
+        )
+
+        mode = ObsTerm(
+            func=mdp.get_mode,
+            clip=(0, 1),
+            scale=1.0,
+        )
+
+        skate_velocity_command = ObsTerm(
+            func=mdp.get_skate_velocity_command,
             clip=(0, 1),
             scale=1.0,
         )
@@ -497,6 +519,11 @@ class EventCfg:
                 "yaw": (-0.5, 0.5),
             },
         },
+    )
+
+    reset_skateboard = EventTerm(
+        func=mdp.reset_skateboard,
+        mode="reset",
     )
 
     # interval
@@ -761,64 +788,40 @@ class RewardsCfg:
         },
     )
 
-    skate_distance_penalty = RewTerm(
-        func=mdp.skate_distance_penalty,
-        weight=0.0,
-    )
-
     skate_feet_contact = RewTerm(
         func=mdp.skate_feet_contact,
         weight=0.0,
         params={
             "height_threshold": 0.1
         },
-        
     )    
 
-    skate_rot_reward = RewTerm(
-        func=mdp.skate_rot_reward,
+    skate_orientation_tracking = RewTerm(
+        func=mdp.skate_orientation_tracking,
         weight=0.0,
         params={
-            "distance_threshold": 0.4,
+            "distance_threshold": 0.3,
+            "std": math.sqrt(0.25),
         },
     )
 
-    skate_track_lin_vel_xy_exp = RewTerm(
-        func=mdp.skate_track_lin_vel_xy_exp,
+    skate_distance_tracking = RewTerm(
+        func=mdp.skate_distance_tracking,
         weight=0.0,
         params={
             "std": math.sqrt(0.25),
         },
     )
 
-    skate_distance_reward = RewTerm(
-        func=mdp.skate_distance_reward,
-        weight=0.0,
-    )
-
-    skate_feet_height = RewTerm(
-        func=mdp.skate_feet_height,
-        weight=0.0,
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "distance_threshold": 0.15,
-            "target_height": 0.1,
-        },
-    )
-
-    skate_feet_pose = RewTerm(
-        func=mdp.skate_feet_pose,
-        weight=0.0,
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "distance_threshold": 0.4,
-            "skate_asset_cfg": SceneEntityCfg("skateboard")
-        },
-    )
-
     skateboard_upward = RewTerm(
         func=mdp.skateboard_upward,
         weight=0.0,
+    )
+
+    skate_velocity_penalty = RewTerm(
+    func=mdp.skate_velocity_penalty,
+    weight=0.0,
+    params={"asset_cfg": SceneEntityCfg("skateboard")}
     )
 
 @configclass
@@ -840,6 +843,9 @@ class TerminationsCfg:
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 1.0},
     )
 
+    skateboard_upward = DoneTerm(
+        func=mdp.skateboard_upward,
+    )
 
 @configclass
 class CurriculumCfg:

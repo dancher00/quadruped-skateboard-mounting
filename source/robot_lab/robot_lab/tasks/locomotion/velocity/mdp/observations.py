@@ -50,24 +50,8 @@ def skate_rot_rel(
     # extract the used quantities (to enable type-hinting)
     skate_rot_quat = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
     skate_rot_euler = euler_xyz_from_quat(skate_rot_quat)
-    skate_rot_euler = torch.cat([skate_rot_euler[0].unsqueeze(1), skate_rot_euler[1].unsqueeze(1), skate_rot_euler[2].unsqueeze(1)], dim=1)
-    return skate_rot_euler
-
-def skate_feet_positions(
-    env: ManagerBasedRLEnv,
-    asset_cfg: SceneEntityCfg,
-    skate_asset_cfg = SceneEntityCfg,
-) -> torch.Tensor:
-    """Reward the swinging feet for clearing a specified height off the ground"""
-    asset: RigidObject = env.scene[asset_cfg.name]
-    skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
-    foot_pose = asset.data.body_pos_w[:, asset_cfg.body_ids]
-    skate_pose = skate_asset.data.root_pos_w.unsqueeze(1)
-    skate_pose = skate_pose.repeat(1, 4, 1)
-    target_pose = torch.tensor([[0.2, 0.15, 0.1], [0.2, -0.15, 0.1], [-0.2, 0.15, 0.1], [-0.2, -0.15, 0.1]], device=env.device) + skate_pose
-    relative_pos = target_pose - foot_pose
-    relative_pos = relative_pos.view(*relative_pos.shape[:-2], -1)
-    return relative_pos
+    # skate_rot_euler = torch.cat([skate_rot_euler[0].unsqueeze(1), skate_rot_euler[1].unsqueeze(1), skate_rot_euler[2].unsqueeze(1)], dim=1)
+    return skate_rot_euler[2].unsqueeze(1)
 
 def skate_feet_contact_obs(
     env: ManagerBasedRLEnv,
@@ -80,11 +64,30 @@ def skate_feet_contact_obs(
     FR_contact_sensor.data.force_matrix_w.squeeze(1)
     cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
      RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
-    heigh_mask = torch.cat([FR_contact_sensor.data.pos_w[..., 2], FL_contact_sensor.data.pos_w[..., 2],
-     RR_contact_sensor.data.pos_w[..., 2], RL_contact_sensor.data.pos_w[..., 2]], dim=1)
+    # heigh_mask = torch.cat([FR_contact_sensor.data.pos_w[..., 2], FL_contact_sensor.data.pos_w[..., 2],
+    #  RR_contact_sensor.data.pos_w[..., 2], RL_contact_sensor.data.pos_w[..., 2]], dim=1)
     
     contact_tensor = torch.any(cat != 0, dim=2).float()
-    return contact_tensor
+    return contact_tensor 
+
+
+
+
+# def skate_feet_positions(
+#     env: ManagerBasedRLEnv,
+#     asset_cfg: SceneEntityCfg,
+#     skate_asset_cfg = SceneEntityCfg,
+# ) -> torch.Tensor:
+#     """Reward the swinging feet for clearing a specified height off the ground"""
+#     asset: RigidObject = env.scene[asset_cfg.name]
+#     skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
+#     foot_pose = asset.data.body_pos_w[:, asset_cfg.body_ids]
+#     skate_pose = skate_asset.data.root_pos_w.unsqueeze(1)
+#     skate_pose = skate_pose.repeat(1, 4, 1)
+#     target_pose = torch.tensor([[0.2, 0.15, 0.1], [0.2, -0.15, 0.1], [-0.2, 0.15, 0.1], [-0.2, -0.15, 0.1]], device=env.device) + skate_pose
+#     relative_pos = target_pose - foot_pose
+#     relative_pos = relative_pos.view(*relative_pos.shape[:-2], -1)
+#     return relative_pos
 
 # def target_vel(
 #     env: ManagerBasedRLEnv, robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 
@@ -105,53 +108,3 @@ def skate_feet_contact_obs(
 #     target_vel[norm_v > vector_norm] = unit_vector[norm_v > vector_norm] * vector_norm
 
 #     return target_vel
-
-# def target_pos(
-#     env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
-# ) -> torch.Tensor:
-#     """Reward tracking of linear velocity commands (xy axes) using exponential kernel."""
-#     # extract the used quantities (to enable type-hinting)
-#     asset: RigidObject = env.scene[asset_cfg.name]
-
-#     target_vel = -asset.data.root_pos_w[:, :2]
-
-#     return target_vel
-
-
-# def skate_pos_rel(
-#     env: ManagerBasedEnv,
-#     robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-#     skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard"),
-# ) -> torch.Tensor:
-#     """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
-#     # extract the used quantities (to enable type-hinting)
-#     robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
-#     skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
-#     skate_pos_rel = skate_asset.data.root_pos_w - robot_asset.data.root_pos_w
-
-#     return skate_pos_rel
-
-# def skate_rot_rel(
-#     env: ManagerBasedEnv,
-#     robot_asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-#     skate_asset_cfg: SceneEntityCfg = SceneEntityCfg("skateboard"),
-# ) -> torch.Tensor:
-#     """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
-#     # extract the used quantities (to enable type-hinting)
-#     robot_asset: RigidObject = env.scene[robot_asset_cfg.name]
-#     skate_asset: RigidObject = env.scene[skate_asset_cfg.name]
-
-#     skate_q = skate_asset.data.root_quat_w
-#     robot_q = robot_asset.data.root_quat_w
-#     robot_q_inv = torch.tensor([robot_q[0], -robot_q[1], -robot_q[2], -robot_q[3]])
-#     skate_rot_rel = quaternion_multiply(skate_q, robot_q_inv)
-
-#     return skate_rot_rel
-
-# def quaternion_multiply(quaternion1, quaternion0):
-#     w0, x0, y0, z0 = quaternion0
-#     w1, x1, y1, z1 = quaternion1
-#     return torch.tensor([-x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0,
-#                      x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0,
-#                      -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
-#                      x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0], dtype=torch.float64)
