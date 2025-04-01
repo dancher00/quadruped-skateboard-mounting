@@ -1,0 +1,621 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   source/robot_lab/robot_lab/assets/unitree.py
+	modified:   source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/agents/rsl_rl_ppo_cfg.py
+	modified:   source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/rough_env_cfg.py
+	modified:   source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/observations.py
+	modified:   source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/rewards.py
+	modified:   source/robot_lab/robot_lab/tasks/locomotion/velocity/velocity_env_cfg.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/source/robot_lab/robot_lab/assets/unitree.py b/source/robot_lab/robot_lab/assets/unitree.py
+index 44a8aec..6abe8f8 100644
+--- a/source/robot_lab/robot_lab/assets/unitree.py
++++ b/source/robot_lab/robot_lab/assets/unitree.py
+@@ -42,8 +42,8 @@ UNITREE_A1_CFG = ArticulationCfg(
+     init_state=ArticulationCfg.InitialStateCfg(
+         pos=(0.0, 0.0, 0.38),
+         joint_pos={
+-            ".*L_hip_joint": 0.0,
+-            ".*R_hip_joint": -0.0,
++            ".*L_hip_joint": -0.2,
++            ".*R_hip_joint": 0.2,
+             "F.*_thigh_joint": 0.8,
+             "R.*_thigh_joint": 0.8,
+             ".*_calf_joint": -1.5,
+diff --git a/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/agents/rsl_rl_ppo_cfg.py b/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/agents/rsl_rl_ppo_cfg.py
+index 2f2e205..4306dcd 100644
+--- a/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/agents/rsl_rl_ppo_cfg.py
++++ b/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/agents/rsl_rl_ppo_cfg.py
+@@ -25,10 +25,12 @@ class UnitreeA1RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+         value_loss_coef=1.0,
+         use_clipped_value_loss=True,
+         clip_param=0.2,
++        # entropy_coef=0.01,
+         entropy_coef=0.01,
+         num_learning_epochs=5,
+         num_mini_batches=4,
+         learning_rate=1.0e-3,
++        # learning_rate=3.0e-4,
+         schedule="adaptive",
+         gamma=0.99,
+         lam=0.95,
+diff --git a/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/rough_env_cfg.py b/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/rough_env_cfg.py
+index 97ec4b7..dc49a7e 100644
+--- a/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/rough_env_cfg.py
++++ b/source/robot_lab/robot_lab/tasks/locomotion/velocity/config/quadruped/unitree_a1/rough_env_cfg.py
+@@ -48,11 +48,11 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+         self.observations.policy.joint_pos.scale = 1.0
+         self.observations.policy.joint_vel.scale = 0.05
+         self.observations.policy.base_lin_vel = None
+-        self.observations.policy.height_scan = None
++        # self.observations.policy.height_scan = None
+         self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
+         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
+-        # self.observations.policy.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
+-        # self.observations.critic.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
++        self.observations.policy.feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
++        self.observations.critic.feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
+ 
+         # ------------------------------Actions------------------------------
+         # reduce action scale
+@@ -63,14 +63,28 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+         # ------------------------------Events------------------------------
+         self.events.randomize_reset_base.params = {
+             "pose_range": {
+-                "x": (-1.5, 1.5),
+-                "y": (-1.5, 1.5),
+-                "z": (0.0, 0.2),
+-                "roll": (-0.17, 0.17),
+-                "pitch": (-0.17, 0.17),
+-                "yaw": (-3.14, 3.14),
++                # "x": (-1.5, 1.5),
++                # "y": (-1.5, 1.5),
++                # "z": (0.1, 0.2),
++                # "roll": (-0.17, 0.17),
++                # "pitch": (-0.17, 0.17),
++                # "yaw": (-3.14, 3.14),
++
++                "x": (0.05, 0.07),
++                "y": (-0.01, 0.01),
++                "z": (0.1, 0.2),
++                "roll": (-0.1, 0.1),
++                "pitch": (-0.1, 0.1),
++                "yaw": (-0.1, 0.1),
+             },
+             "velocity_range": {
++                # "x": (-0.5, 0.5),
++                # "y": (-0.5, 0.5),
++                # "z": (-0.5, 0.5),
++                # "roll": (-0.5, 0.5),
++                # "pitch": (-0.5, 0.5),
++                # "yaw": (-0.5, 0.5),
++
+                 "x": (-0.5, 0.5),
+                 "y": (-0.5, 0.5),
+                 "z": (-0.5, 0.5),
+@@ -152,13 +166,12 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+         self.rewards.skate_feet_contact.weight = 5.0
+         self.rewards.skate_orientation_tracking.weight = 1.0
+         self.rewards.skate_distance_tracking.weight = 1.0
+-        self.rewards.skateboard_upward.weight = -10.0
+-        self.rewards.skate_velocity_penalty.weight = -1.0
++        self.rewards.skateboard_upward.weight = 0.0
++        self.rewards.skate_velocity_penalty.weight = 0.0
+ 
+         # stage
+         self.stage = 1
+         
+-        
+ 
+         # If the weight of rewards is 0, set rewards to None
+         if self.__class__.__name__ == "UnitreeA1RoughEnvCfg":
+@@ -184,4 +197,4 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+         # ------------------------------Commands------------------------------
+         self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
+         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+\ No newline at end of file
++        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+\ No newline at end of file
+diff --git a/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/observations.py b/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/observations.py
+index c3280f7..0c3df93 100644
+--- a/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/observations.py
++++ b/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/observations.py
+@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
+ 
+ from isaaclab.assets import Articulation, RigidObject
+ from isaaclab.managers import SceneEntityCfg
+-from isaaclab.utils.math import euler_xyz_from_quat
++from isaaclab.utils.math import euler_xyz_from_quat, quat_mul, quat_conjugate, quat_rotate_inverse
+ from isaaclab.sensors import ContactSensor
+ 
+ if TYPE_CHECKING:
+@@ -108,3 +108,172 @@ def skate_feet_contact_obs(
+ #     target_vel[norm_v > vector_norm] = unit_vector[norm_v > vector_norm] * vector_norm
+ 
+ #     return target_vel
++
++# def rotate_vectors_by_quaternion(vectors, quaternions):
++#     """Rotate vectors by quaternions.
++#     Args:
++#         vectors: Shape is (M, 3)
++#         quaternions: Shape is (N, 4)
++
++#     Returns:
++#         Tensor of vectors rotated by quaternions. Shape is (N, M, 3)
++#     """
++
++#     # Convert vectors to quaternion form (0, v_x, v_y, v_z)
++#     vectors = vectors.unsqueeze(0).repeat(quaternions.shape[0], 1, 1)
++#     v_quat = torch.cat((torch.zeros(*vectors.shape[:-1], 1, device = vectors.device), vectors), dim=-1)  # Shape: (N, M, 4)
++
++#     quaternions = quaternions.unsqueeze(1).repeat(1, vectors.shape[1], 1)
++#     q_conjugate = quat_conjugate(quaternions)
++
++#     # Rotate: q * v * q_conjugate
++#     rotated_vectors = quat_mul(quat_mul(quaternions, v_quat), q_conjugate)
++#     return rotated_vectors[..., 1:]  # Return only the vector part
++
++# def transform_vectors_to_parent_frame(target_positions, target_quaternions, vectors):
++#     """Transform vectors from target frames to parent frame using batch processing.
++#     Args:
++#         target_positions: Shape is (N, 3)
++#         target_quaternions: Shape is (N, 4)
++#         vectors: Shape is (M, 3)
++#     Returns:
++#         Tensor of vectors rotated by target quaternions and translated by target vectors. Shape is (N, M, 3)
++#     """
++#     # Rotate the vectors using quaternions
++#     rotated_vectors = rotate_vectors_by_quaternion(vectors, target_quaternions)  # Shape: (N, M, 3)
++
++#     # Add the target positions to the rotated vectors
++#     result_tensor = rotated_vectors + target_positions.unsqueeze(1).repeat(1, rotated_vectors.shape[1], 1)  # Shape: (N, M, 3)
++
++#     return result_tensor.reshape(result_tensor.shape[0], -1)
++
++
++def quat_conjugate(quaternions):
++    """Compute the conjugate of a quaternion."""
++    return quaternions[..., 0:1] * torch.tensor([1, -1, -1, -1], device=quaternions.device)
++
++def quat_mul(q1, q2):
++    """Multiply two quaternions."""
++    w1, x1, y1, z1 = q1.unbind(-1)
++    w2, x2, y2, z2 = q2.unbind(-1)
++    return torch.stack((
++        w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
++        w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
++        w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
++        w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2
++    ), dim=-1)
++
++def rotate_vectors_by_quaternion(vectors, quaternions):
++    """Rotate vectors by quaternions.
++    
++    Args:
++        vectors: Shape is (M, 3)
++        quaternions: Shape is (N, 4)
++
++    Returns:
++        Tensor of vectors rotated by quaternions. Shape is (N, M, 3)
++    """
++    N = quaternions.shape[0]
++    M = vectors.shape[0]
++
++    # Create a tensor of shape (N, M, 4) for vectors in quaternion form
++    v_quat = torch.zeros((N, M, 4), device=vectors.device)
++    v_quat[..., 1:] = vectors.unsqueeze(0)  # Assign vectors to the last 3 dimensions
++
++    # Expand quaternions to match the shape of vectors
++    quaternions_expanded = quaternions.unsqueeze(1)  # Shape: (N, 1, 4)
++    q_conjugate = quat_conjugate(quaternions_expanded)
++
++    # Rotate: q * v * q_conjugate
++    rotated_vectors = quat_mul(quat_mul(quaternions_expanded, v_quat), q_conjugate)
++
++    return rotated_vectors[..., 1:]  # Return only the vector part
++
++def transform_vectors_to_parent_frame(target_positions, target_quaternions, vectors):
++    """Transform vectors from target frames to parent frame using batch processing.
++    
++    Args:
++        target_positions: Shape is (N, 3)
++        target_quaternions: Shape is (N, 4)
++        vectors: Shape is (M, 3)
++
++    Returns:
++        Tensor of vectors rotated by target quaternions and translated by target vectors. Shape is (N, M, 3)
++    """
++    # Rotate the vectors using quaternions
++    rotated_vectors = rotate_vectors_by_quaternion(vectors, target_quaternions)  # Shape: (N, M, 3)
++
++    # Add the target positions to the rotated vectors
++    result_tensor = rotated_vectors + target_positions.unsqueeze(1)  # Broadcasting: (N, M, 3)
++
++    return result_tensor.reshape(result_tensor.shape[0], -1)  # Shape: (N, M*3)
++
++def rectangle_perimeter_tensor(width, height, interval):
++    """Generate a tensor with coordinates of all points on the perimeter of a rectangle.
++    
++    Args:
++        width (float): The width of the rectangle.
++        height (float): The height of the rectangle.
++        interval (float): The interval between points on the perimeter.
++    
++    Returns:
++        torch.Tensor: A tensor of shape (N, 3) containing the coordinates of points on the perimeter.
++    """
++    # Calculate half dimensions
++    half_width = width / 2
++    half_height = height / 2
++    
++    # Initialize a list to hold the points
++    points = []
++
++    # Bottom edge (from (-half_width, -half_height) to (half_width, -half_height))
++    for x in torch.arange(-half_width, half_width + interval, interval):
++        points.append(torch.tensor([x, -half_height, 0.1]))
++
++    # Right edge (from (half_width, -half_height) to (half_width, half_height))
++    for y in torch.arange(-half_height + interval, half_height + interval, interval):
++        points.append(torch.tensor([half_width, y, 0.1]))
++
++    # Top edge (from (half_width, half_height) to (-half_width, half_height))
++    for x in torch.arange(half_width, -half_width - interval, -interval):
++        points.append(torch.tensor([x, half_height, 0.1]))
++
++    # Left edge (from (-half_width, half_height) to (-half_width, -half_height))
++    for y in torch.arange(half_height - interval, -half_height - interval, -interval):
++        points.append(torch.tensor([-half_width, y, 0.1]))
++
++    # Convert list of points to a tensor
++    perimeter_tensor = torch.stack(points)
++
++    return perimeter_tensor
++
++def skate_point_cloud(
++    env: ManagerBasedEnv,
++) -> torch.Tensor:
++    """The joint positions of the asset w.r.t. the default joint positions.(Without the wheel joints)"""
++    # extract the used quantities (to enable type-hinting)
++    skate_pos = env.scene["skate_transform"].data.target_pos_source.squeeze(1)
++    skate_rot_quat = env.scene["skate_transform"].data.target_quat_source.squeeze(1)
++
++    # vectors = rectangle_perimeter_tensor(0.575, 0.43, 0.1).to(env.device)
++    vectors = rectangle_perimeter_tensor(0.575, 0.25, 0.083).to(env.device)
++    vectors_transformed = transform_vectors_to_parent_frame(skate_pos, skate_rot_quat, vectors)
++
++    return vectors_transformed
++
++def feet_pose(
++        env: ManagerBasedEnv,
++        asset_cfg: SceneEntityCfg,
++) -> torch.Tensor:
++    # asset: RigidObject = env.scene[asset_cfg.name]
++    # feet_pose = asset.data.com_pos_b[:, asset_cfg.body_ids]
++    # return feet_pose.view(env.num_envs, -1)
++
++    asset: RigidObject = env.scene[asset_cfg.name]
++    cur_footpos_translated = asset.data.body_pos_w[:, asset_cfg.body_ids, :] - asset.data.root_pos_w[:, :].unsqueeze(1)
++    footpos_in_body_frame = torch.zeros(env.num_envs, len(asset_cfg.body_ids), 3, device=env.device)
++    for i in range(len(asset_cfg.body_ids)):
++        footpos_in_body_frame[:, i, :] = quat_rotate_inverse(
++            asset.data.root_quat_w, cur_footpos_translated[:, i, :]
++        )
++    return footpos_in_body_frame.view(env.num_envs, -1)
+diff --git a/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/rewards.py b/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/rewards.py
+index f4c9839..baf95f8 100644
+--- a/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/rewards.py
++++ b/source/robot_lab/robot_lab/tasks/locomotion/velocity/mdp/rewards.py
+@@ -120,14 +120,17 @@ def joint_pos_penalty(
+     running_reward = torch.linalg.norm(
+         (asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]), dim=1
+     )
+-    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+-    reward = torch.where(
+-        torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
+-        running_reward,
+-        stand_still_scale * running_reward,
+-    )
++    reward = running_reward
++    # if env.cfg.stage != 0:
++    #     reward = torch.where(env.episode_length_buf > 300, stand_still_scale * running_reward, running_reward)
++    # else:
++    #     reward = torch.where(
++    #         torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
++    #         running_reward,
++    #         stand_still_scale * running_reward,
++    #     )
+     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+-    reward = torch.clamp(reward, 0, 5)
++    reward = torch.clamp(reward, 0, 10)
+     return reward
+ 
+ 
+@@ -152,11 +155,11 @@ def skate_feet_contact(
+     contact_tensor = contact_tensor.float()
+     # contact_tensor *= torch.tensor([1, 1, 1.5, 1.5], device = env.device)
+     reward = torch.sum(contact_tensor, dim=1)
+-    episode_len = env.episode_length_buf
+-    reward = torch.where(episode_len > 300, reward, 0)
++    # reward = torch.where(env.episode_length_buf > 300, reward, 0)
++    # reward = 2**reward
+     # reward = torch.where(reward > 3.5, reward, 0)
+     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+-    reward = torch.clamp(reward, 0, 16)
++    reward = torch.clamp(reward, 0, 4)
+     return reward
+ 
+ def skate_orientation_tracking(
+@@ -175,7 +178,7 @@ def skate_orientation_tracking(
+     error = torch.clamp(error,min=0)
+     reward = torch.exp(-error / std**2)
+     reward = reward * vicinity_mask
+-    reward = torch.where(env.episode_length_buf > 300, reward, 0)
++    # reward = torch.where(env.episode_length_buf > 300, reward, 0)
+     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+     return reward
+ 
+@@ -188,7 +191,7 @@ def skate_distance_tracking(
+     # extract the used quantities (to enable type-hinting)
+     distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+     reward = torch.exp(-distance / std**2)
+-    reward = torch.where(env.episode_length_buf > 300, reward, 0)
++    # reward = torch.where(env.episode_length_buf > 300, reward, 0)
+     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+     return reward
+ 
+@@ -619,7 +622,6 @@ def base_height_l2(
+     target_height: float,
+     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+     sensor_cfg: SceneEntityCfg | None = None,
+-    distance_threshold = float
+ ) -> torch.Tensor:
+     """Penalize asset height from its target using L2 squared kernel.
+ 
+@@ -642,8 +644,9 @@ def base_height_l2(
+         adjusted_target_height = target_height
+     # Compute the L2 squared penalty
+     error = asset.data.root_pos_w[:, 2] - adjusted_target_height
+-    # distance = torch.linalg.norm(env.scene["skate_transform"].data.target_pos_source.squeeze(1)[:, :2], dim=1)
+-    # reward = torch.where(distance < distance_threshold, error - 0.1, error)
++    if env.cfg.stage != 0:
++        # reward = torch.where(env.episode_length_buf > 300, error - 0.1, error)
++        reward = error - 0.1
+     reward = torch.square(error)
+     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+     reward = torch.clamp(reward, 0, 0.5)
+@@ -728,8 +731,9 @@ def get_velocity_command(env: ManagerBasedRLEnv,
+         # Compute distance and determine which command to use
+         distance = torch.linalg.norm(target_pos, dim=1, keepdim=True)
+         velocity_command = torch.where(distance < distance_threshold, velocity_command_near, velocity_command_far)
+-
++    
+         return velocity_command
++        
+ 
+ def get_skate_velocity_command(env: ManagerBasedRLEnv,
+                           ) -> torch.Tensor:
+@@ -751,3 +755,28 @@ def get_mode(env: ManagerBasedRLEnv) -> torch.Tensor:
+         return torch.where(env.episode_length_buf > 300, 1, 0).unsqueeze(1).float()
+     else:
+         return torch.zeros((env.num_envs, 1), device = env.device)
++
++
++def skate_feet_contact_term(
++    env: ManagerBasedRLEnv,
++    height_threshold = float
++) -> torch.Tensor:
++    """Reward for feet contact with skateboard"""
++    FR_contact_sensor: ContactSensor = env.scene.sensors["FR_contact"]
++    FL_contact_sensor: ContactSensor = env.scene.sensors["FL_contact"]
++    RR_contact_sensor: ContactSensor = env.scene.sensors["RR_contact"]
++    RL_contact_sensor: ContactSensor = env.scene.sensors["RL_contact"]
++    FR_contact_sensor.data.force_matrix_w.squeeze(1)
++    cat = torch.cat([FR_contact_sensor.data.force_matrix_w.squeeze(1), FL_contact_sensor.data.force_matrix_w.squeeze(1),
++     RR_contact_sensor.data.force_matrix_w.squeeze(1), RL_contact_sensor.data.force_matrix_w.squeeze(1)], dim=1)
++    heigh_mask = torch.cat([FR_contact_sensor.data.pos_w[..., 2], FL_contact_sensor.data.pos_w[..., 2],
++     RR_contact_sensor.data.pos_w[..., 2], RL_contact_sensor.data.pos_w[..., 2]], dim=1)
++    
++    heigh_mask = heigh_mask > height_threshold
++    contact_tensor = torch.any(cat != 0, dim=2)
++    contact_tensor &= heigh_mask
++    contact_tensor = contact_tensor.float()
++    reward = torch.sum(contact_tensor, dim=1)
++    reward = reward < 2.5
++    reward = torch.where(env.episode_length_buf > 350, reward, 0).bool()
++    return reward
+\ No newline at end of file
+diff --git a/source/robot_lab/robot_lab/tasks/locomotion/velocity/velocity_env_cfg.py b/source/robot_lab/robot_lab/tasks/locomotion/velocity/velocity_env_cfg.py
+index 2ac1470..76485a7 100644
+--- a/source/robot_lab/robot_lab/tasks/locomotion/velocity/velocity_env_cfg.py
++++ b/source/robot_lab/robot_lab/tasks/locomotion/velocity/velocity_env_cfg.py
+@@ -76,8 +76,10 @@ class MySceneCfg(InteractiveSceneCfg):
+         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+         attach_yaw_only=True,
+         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+-        debug_vis=False,
++        debug_vis=True,
+         mesh_prim_paths=["/World/ground"],
++        # mesh_prim_paths=[f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/usd/meshes/base_link.STL",],
++        # mesh_prim_paths=["/World/envs/env_.*/Skateboard"],
+     )
+     height_scanner_base = RayCasterCfg(
+         prim_path="{ENV_REGEX_NS}/Robot/base",
+@@ -114,10 +116,12 @@ class MySceneCfg(InteractiveSceneCfg):
+         collision_group=0,
+         spawn=sim_utils.UsdFileCfg(
+             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/usd/skate.usd",
++            # usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard_old/ski.usd",
++            
+             activate_contact_sensors=False,
+-            # articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
+-            #     fix_root_link = True,
+-            # ),
++            articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
++                fix_root_link = True,
++            ),
+         ),
+         init_state=ArticulationCfg.InitialStateCfg(
+             
+@@ -272,17 +276,32 @@ class ObservationsCfg:
+             scale=1.0,
+         )
+ 
+-        mode = ObsTerm(
+-            func=mdp.get_mode,
+-            clip=(0, 1),
++        skate_point_cloud = ObsTerm(
++            func=mdp.skate_point_cloud,
++            # noise=Unoise(n_min=-0.1, n_max=0.1),
++            clip=(-5, 5),
+             scale=1.0,
+         )
+ 
+-        skate_velocity_command = ObsTerm(
+-            func=mdp.get_skate_velocity_command,
+-            clip=(0, 1),
++        feet_pose = ObsTerm(
++            func=mdp.feet_pose,
++            params={"asset_cfg": SceneEntityCfg("robot", body_names="")},
++            noise=Unoise(n_min=-0.01, n_max=0.01),
++            clip=(-1, 1),
+             scale=1.0,
+         )
++
++        # mode = ObsTerm(
++        #     func=mdp.get_mode,
++        #     clip=(0, 1),
++        #     scale=1.0,
++        # )
++
++        # skate_velocity_command = ObsTerm(
++        #     func=mdp.get_skate_velocity_command,
++        #     clip=(0, 1),
++        #     scale=1.0,
++        # )
+         
+         # skate_feet_positions = ObsTerm(
+         #     func=mdp.skate_feet_positions,
+@@ -369,18 +388,33 @@ class ObservationsCfg:
+             scale=1.0,
+         )
+ 
+-        mode = ObsTerm(
+-            func=mdp.get_mode,
+-            clip=(0, 1),
++        skate_point_cloud = ObsTerm(
++            func=mdp.skate_point_cloud,
++            # noise=Unoise(n_min=-0.1, n_max=0.1),
++            clip=(-5, 5),
+             scale=1.0,
+         )
+ 
+-        skate_velocity_command = ObsTerm(
+-            func=mdp.get_skate_velocity_command,
+-            clip=(0, 1),
++        feet_pose = ObsTerm(
++            func=mdp.feet_pose,
++            params={"asset_cfg": SceneEntityCfg("robot", body_names="")},
++            noise=Unoise(n_min=-0.01, n_max=0.01),
++            clip=(-1, 1),
+             scale=1.0,
+         )
+ 
++        # mode = ObsTerm(
++        #     func=mdp.get_mode,
++        #     clip=(0, 1),
++        #     scale=1.0,
++        # )
++
++        # skate_velocity_command = ObsTerm(
++        #     func=mdp.get_skate_velocity_command,
++        #     clip=(0, 1),
++        #     scale=1.0,
++        # )
++
+         # skate_feet_positions = ObsTerm(
+         #     func=mdp.skate_feet_positions,
+         #     noise=Unoise(n_min=-0.05, n_max=0.05),
+@@ -466,8 +500,8 @@ class EventCfg:
+         mode="reset",
+         params={
+             "asset_cfg": SceneEntityCfg("robot", body_names=""),
+-            "force_range": (-10.0, 10.0),
+-            "torque_range": (-10.0, 10.0),
++            "force_range": (-5.0, 5.0),
++            "torque_range": (-5.0, 5.0),
+         },
+     )
+ 
+@@ -521,10 +555,10 @@ class EventCfg:
+         },
+     )
+ 
+-    reset_skateboard = EventTerm(
+-        func=mdp.reset_skateboard,
+-        mode="reset",
+-    )
++    # reset_skateboard = EventTerm(
++    #     func=mdp.reset_skateboard,
++    #     mode="reset",
++    # )
+ 
+     # interval
+     randomize_push_robot = EventTerm(
+@@ -680,7 +714,7 @@ class RewardsCfg:
+             "command_name": "base_velocity",
+             "mode_time": 0.3,
+             "velocity_threshold": 0.5,
+-            "command_threshold": 0.1,
++            "command_threshold": 0.2,
+             "asset_cfg": SceneEntityCfg("robot"),
+             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+         },
+@@ -694,7 +728,7 @@ class RewardsCfg:
+             "command_name": "base_velocity",
+             "max_err": 0.2,
+             "velocity_threshold": 0.5,
+-            "command_threshold": 0.1,
++            "command_threshold": 0.2,
+             "synced_feet_pair_names": (("", ""), ("", "")),
+             "asset_cfg": SceneEntityCfg("robot"),
+             "sensor_cfg": SceneEntityCfg("contact_forces"),
+@@ -843,9 +877,16 @@ class TerminationsCfg:
+         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 1.0},
+     )
+ 
+-    skateboard_upward = DoneTerm(
+-        func=mdp.skateboard_upward,
+-    )
++    # skateboard_upward = DoneTerm(
++    #     func=mdp.skateboard_upward,
++    # )
++
++    # skate_feet_contact_term = DoneTerm(
++    #     func=mdp.skate_feet_contact_term,
++    #     params={
++    #         "height_threshold": 0.1
++    #     },
++    # )
+ 
+ @configclass
+ class CurriculumCfg:
+@@ -887,7 +928,7 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
+         """Post initialization."""
+         # general settings
+         self.decimation = 4
+-        self.episode_length_s = 20.0
++        self.episode_length_s = 5.0
+         # simulation settings
+         self.sim.dt = 0.005
+         self.sim.render_interval = self.decimation

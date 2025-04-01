@@ -76,7 +76,7 @@ class MySceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=False,
+        debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )
     height_scanner_base = RayCasterCfg(
@@ -102,18 +102,13 @@ class MySceneCfg(InteractiveSceneCfg):
         ),
     )
 
-    # radius_dist = torch.distributions.uniform.Uniform(1., 3.)
-    # angle_dist = torch.distributions.uniform.Uniform(-torch.pi, torch.pi)
-    # radius = radius_dist.sample()
-    # angle = angle_dist.sample()
-    # pos_x = radius * torch.cos(angle)
-    # pos_y = radius * torch.sin(angle)
-
     skateboard = ArticulationCfg(
         prim_path="/World/envs/env_.*/Skateboard",
         collision_group=0,
         spawn=sim_utils.UsdFileCfg(
             usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard/usd/skate.usd",
+            # usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Skateboard_old/ski.usd",
+            
             activate_contact_sensors=False,
             # articulation_props = sim_utils.schemas.ArticulationRootPropertiesCfg(
             #     fix_root_link = True,
@@ -121,7 +116,6 @@ class MySceneCfg(InteractiveSceneCfg):
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             
-            # pos=( 1.0, 1.0, 0.0),
             pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
             joint_pos={  # Указываем реальные имена шарниров из ski.usd
@@ -272,28 +266,20 @@ class ObservationsCfg:
             scale=1.0,
         )
 
-        mode = ObsTerm(
-            func=mdp.get_mode,
-            clip=(0, 1),
+        skate_point_cloud = ObsTerm(
+            func=mdp.skate_point_cloud,
+            noise=Unoise(n_min=-0.01, n_max=0.01),
+            clip=(-5, 5),
             scale=1.0,
         )
 
-        skate_velocity_command = ObsTerm(
-            func=mdp.get_skate_velocity_command,
-            clip=(0, 1),
+        feet_pose = ObsTerm(
+            func=mdp.feet_pose,
+            params={"asset_cfg": SceneEntityCfg("robot", body_names="")},
+            noise=Unoise(n_min=-0.01, n_max=0.01),
+            clip=(-1, 1),
             scale=1.0,
         )
-        
-        # skate_feet_positions = ObsTerm(
-        #     func=mdp.skate_feet_positions,
-        #     noise=Unoise(n_min=-0.05, n_max=0.05),
-        #     clip=(-5.0, 5.0),
-        #     scale=1.0,
-        #     params={
-        #     "asset_cfg": SceneEntityCfg("robot", body_names=""),
-        #     "skate_asset_cfg": SceneEntityCfg("skateboard")
-        # },
-        # )
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -369,28 +355,20 @@ class ObservationsCfg:
             scale=1.0,
         )
 
-        mode = ObsTerm(
-            func=mdp.get_mode,
-            clip=(0, 1),
+        skate_point_cloud = ObsTerm(
+            func=mdp.skate_point_cloud,
+            noise=Unoise(n_min=-0.01, n_max=0.01),
+            clip=(-5, 5),
             scale=1.0,
         )
 
-        skate_velocity_command = ObsTerm(
-            func=mdp.get_skate_velocity_command,
-            clip=(0, 1),
+        feet_pose = ObsTerm(
+            func=mdp.feet_pose,
+            params={"asset_cfg": SceneEntityCfg("robot", body_names="")},
+            noise=Unoise(n_min=-0.01, n_max=0.01),
+            clip=(-1, 1),
             scale=1.0,
         )
-
-        # skate_feet_positions = ObsTerm(
-        #     func=mdp.skate_feet_positions,
-        #     noise=Unoise(n_min=-0.05, n_max=0.05),
-        #     clip=(-5.0, 5.0),
-        #     scale=1.0,
-        #     params={
-        #     "asset_cfg": SceneEntityCfg("robot", body_names=""),
-        #     "skate_asset_cfg": SceneEntityCfg("skateboard")
-        # },
-        # )
 
         def __post_init__(self):
             self.enable_corruption = False
@@ -466,8 +444,8 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "force_range": (-10.0, 10.0),
-            "torque_range": (-10.0, 10.0),
+            "force_range": (-1.0, 1.0),
+            "torque_range": (-1.0, 1.0),
         },
     )
 
@@ -476,8 +454,8 @@ class EventCfg:
         func=mdp.reset_joints_by_offset,
         mode="reset",
         params={
-            "position_range": (-0.2, 0.2),
-            "velocity_range": (-2.5, 2.5),
+            "position_range": (-0.1, 0.1),
+            "velocity_range": (-0.5, 0.5),
         },
     )
 
@@ -680,7 +658,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "mode_time": 0.3,
             "velocity_threshold": 0.5,
-            "command_threshold": 0.1,
+            "command_threshold": 0.2,
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         },
@@ -694,7 +672,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "max_err": 0.2,
             "velocity_threshold": 0.5,
-            "command_threshold": 0.1,
+            "command_threshold": 0.2,
             "synced_feet_pair_names": (("", ""), ("", "")),
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces"),
@@ -887,7 +865,7 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
         """Post initialization."""
         # general settings
         self.decimation = 4
-        self.episode_length_s = 20.0
+        self.episode_length_s = 5.0
         # simulation settings
         self.sim.dt = 0.005
         self.sim.render_interval = self.decimation

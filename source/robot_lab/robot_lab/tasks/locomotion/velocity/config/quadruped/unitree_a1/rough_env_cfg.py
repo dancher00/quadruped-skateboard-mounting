@@ -48,11 +48,11 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.observations.policy.joint_pos.scale = 1.0
         self.observations.policy.joint_vel.scale = 0.05
         self.observations.policy.base_lin_vel = None
-        self.observations.policy.height_scan = None
+        # self.observations.policy.height_scan = None
         self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
-        # self.observations.policy.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
-        # self.observations.critic.skate_feet_positions.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.observations.policy.feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.observations.critic.feet_pose.params["asset_cfg"].body_names = [self.foot_link_name]
 
         # ------------------------------Actions------------------------------
         # reduce action scale
@@ -63,20 +63,34 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Events------------------------------
         self.events.randomize_reset_base.params = {
             "pose_range": {
-                "x": (-1.5, 1.5),
-                "y": (-1.5, 1.5),
-                "z": (0.0, 0.2),
-                "roll": (-0.17, 0.17),
-                "pitch": (-0.17, 0.17),
-                "yaw": (-3.14, 3.14),
+                # "x": (-1.5, 1.5),
+                # "y": (-1.5, 1.5),
+                # "z": (0.1, 0.2),
+                # "roll": (-0.17, 0.17),
+                # "pitch": (-0.17, 0.17),
+                # "yaw": (-3.14, 3.14),
+
+                "x": (-0.3, 0.3),
+                "y": (0.5, 1.0),
+                "z": (0.1, 0.2),
+                "roll": (-0.1, 0.1),
+                "pitch": (-0.1, 0.1),
+                "yaw": (-3.14, 0.),
             },
             "velocity_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
-                "z": (-0.5, 0.5),
-                "roll": (-0.5, 0.5),
-                "pitch": (-0.5, 0.5),
-                "yaw": (-0.5, 0.5),
+                # "x": (-0.5, 0.5),
+                # "y": (-0.5, 0.5),
+                # "z": (-0.5, 0.5),
+                # "roll": (-0.5, 0.5),
+                # "pitch": (-0.5, 0.5),
+                # "yaw": (-0.5, 0.5),
+
+                "x": (-0.1, 0.1),
+                "y": (-0.1, 0.1),
+                "z": (-0.1, 0.1),
+                "roll": (-0.1, 0.1),
+                "pitch": (-0.1, 0.1),
+                "yaw": (-0.1, 0.1),
             },
         }
         self.events.randomize_rigid_body_mass.params["asset_cfg"].body_names = [self.base_link_name]
@@ -153,11 +167,10 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.skate_orientation_tracking.weight = 1.0
         self.rewards.skate_distance_tracking.weight = 1.0
         self.rewards.skateboard_upward.weight = -10.0
-        self.rewards.skate_velocity_penalty.weight = -1.0
+        self.rewards.skate_velocity_penalty.weight = -5.0
 
         # stage
         self.stage = 1
-        
         
 
         # If the weight of rewards is 0, set rewards to None
@@ -184,4 +197,4 @@ class UnitreeA1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Commands------------------------------
         self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
