@@ -137,7 +137,7 @@ This stops and removes the containers, but keeps the images.
 
 </details>
 
-## Launch the Skateboard Climbing
+## Launch the Skateboard Mounting
 
 Lanch a train:
 ```
@@ -146,7 +146,7 @@ python scripts/rsl_rl/base/train.py --task RobotLab-Isaac-Velocity-Flat-Unitree-
 
 Lanch a play:
 ```
-python scripts/rsl_rl/base/play.py --task RobotLab-Isaac-Velocity-Flat-Unitree-A1-v0
+python scripts/rsl_rl/base/play.py --task RobotLab-Isaac-Velocity-Flat-Unitree-A1-v0  --num_envs 1
 ```
 
 
