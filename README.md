@@ -1,6 +1,6 @@
 ## Demo 
 
-![Mounting Process](demo.gif)
+![Mounting Process](mounting_process.gif)
 
 ## Installation
 
