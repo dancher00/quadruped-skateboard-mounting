@@ -1,3 +1,7 @@
+## Demo 
+
+![Mounting Process](demo.gif)
+
 ## Installation
 
 - Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
@@ -172,7 +176,7 @@ In some VsCode versions, the indexing of part of the extensions is missing. In t
 Please cite the following if you use this code or parts of it:
 
 ```
-
+Submitted to IEEE CDC. Waiting for a review
 ```
 
 ## Acknowledgements
