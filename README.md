@@ -2,6 +2,10 @@
 
 ![Mounting Process](mounting_process.gif)
 
+## Preliminary
+
+Please feel free use the Skateboard's model from that repo or from the source with CAD SolidWorks Materials and URDF - [link to skateboard repo](https://github.com/dancher00/skateboard) 
+
 ## Installation
 
 - Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
