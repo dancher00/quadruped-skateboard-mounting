@@ -179,7 +179,7 @@ Please cite the following if you use this code or parts of it:
 Submitted to IEEE CDC. Waiting for a review
 ```
 
-Paper available on arXiv: [here](https://www.arxiv.org/abs/2505.06561)
+Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
 ## Acknowledgements
 
