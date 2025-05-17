@@ -187,6 +187,4 @@ Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
 ## Acknowledgements
 
-The project uses some code from the following open-source code repositories:
-
-- [Alescontrela/AMP_for_hardware](https://github.com/Alescontrela/AMP_for_hardware)
+The project uses some code from the forked repo
