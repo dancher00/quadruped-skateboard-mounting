@@ -1,7 +1,6 @@
 ## Demo 
 
 ![Mounting Process](mounting_process.gif)
-
 ## Preliminary
 
 Please feel free use the Skateboard's model from that repo or from the source with CAD SolidWorks Materials and URDF - [link to skateboard repo](https://github.com/dancher00/skateboard) 
@@ -180,8 +179,18 @@ In some VsCode versions, the indexing of part of the extensions is missing. In t
 Please cite the following if you use this code or parts of it:
 
 ```
-Submitted to IEEE CDC. Waiting for a review
+
+@article{belov2025quadrupedal,
+  title={Quadrupedal Robot Skateboard Mounting via Reverse Curriculum Learning},
+  author={Belov, Danil and Erkhov, Artem and Pestova, Elizaveta and Osokin, Ilya and Tsetserukou, Dzmitry and Osinenko, Pavel},
+  year={2025}
+  eprint={2505.06561},
+  archivePrefix={arXiv},
+  primaryClass={cs.RO},
+  url={https://arxiv.org/abs/2505.06561}, 
+}
 ```
+Submitted to IEEE CDC. Waiting for a review
 
 Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
