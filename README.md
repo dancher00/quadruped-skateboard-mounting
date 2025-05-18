@@ -7,6 +7,8 @@ Please feel free use the Skateboard's model from that repo or from the source wi
 
 ## Installation
 
+<details>
+
 <summary>Click to expand</summary>
 
 - Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
@@ -14,13 +16,13 @@ Please feel free use the Skateboard's model from that repo or from the source wi
 - Clone this repository separately from the Isaac Lab installation (i.e. outside the `IsaacLab` directory):
 
   ```bash
-  git clone https://github.com/fan-ziqi/robot_lab.git
+  git clone https://github.com/dancher00/quadruped-skateboard-mounting.git
   ```
 
 - Using a python interpreter that has Isaac Lab installed, install the library
 
   ```bash
-  python -m pip install -e source/robot_lab
+  python -m pip install -e source/quadruped-skateboard-mounting
   ```
 
 - Verify that the extension is correctly installed by running the following command to print all the available environments in the extension:
@@ -28,6 +30,7 @@ Please feel free use the Skateboard's model from that repo or from the source wi
   ```bash
   python scripts/tools/list_envs.py
   ```
+</details>
 
 <details>
 
