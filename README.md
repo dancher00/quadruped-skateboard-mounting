@@ -187,7 +187,7 @@ Please cite the following if you use this code or parts of it:
 
 @article{belov2025quadrupedal,
   title={Quadrupedal Robot Skateboard Mounting via Reverse Curriculum Learning},
-  author={Belov, Danil and Erkhov, Artem and Pestova, Elizaveta and Osokin, Ilya and Tsetserukou, Dzmitry and Osinenko, Pavel},
+  author={Danil Belov and Artem Erkhov and Elizaveta Pestova and Ilya Osokin and Dzmitry Tsetserukou and Pavel Osinenko},
   year={2025}
   eprint={2505.06561},
   archivePrefix={arXiv},
