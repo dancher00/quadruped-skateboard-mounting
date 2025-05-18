@@ -9,7 +9,7 @@ Please feel free use the Skateboard's model from that repo or from the source wi
 
 <details>
 
-<summary>Click to expand</summary>
+<summary>Preliminary instalation</summary>
 
 - Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
 
