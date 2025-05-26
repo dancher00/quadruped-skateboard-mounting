@@ -201,4 +201,6 @@ Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
 ## Acknowledgements
 
-The project uses some code from the forked repo
+The project uses some code from the Robot Lab repo
+
+Sim2Real tba soon
