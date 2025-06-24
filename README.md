@@ -184,15 +184,15 @@ In some VsCode versions, the indexing of part of the extensions is missing. In t
 Please cite the following if you use this code or parts of it:
 
 ```
-
-@article{belov2025quadrupedal,
-  title={Quadrupedal Robot Skateboard Mounting via Reverse Curriculum Learning},
-  author={Danil Belov and Artem Erkhov and Elizaveta Pestova and Ilya Osokin and Dzmitry Tsetserukou and Pavel Osinenko},
-  year={2025}
-  eprint={2505.06561},
-  archivePrefix={arXiv},
-  primaryClass={cs.RO},
-  url={https://arxiv.org/abs/2505.06561}, 
+@misc{belov2025quadrupedal,
+    title={Quadrupedal Robot Skateboard Mounting via Reverse Curriculum Learning},
+    author={Belov Danil and Erkhov Artem and Pestova Elizaveta and Osokin Ilya and Tsetserukou Dzmitry and Osinenko Pavel},
+    journal={arXiv preprint arXiv:2505.06561},
+    year={2025},
+    eprint={2505.06561},
+    archivePrefix={arXiv},
+    primaryClass={cs.RO},
+    url={https://arxiv.org/abs/2505.06561}, 
 }
 ```
 Submitted to IEEE CDC. Waiting for a review
@@ -201,6 +201,6 @@ Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
 ## Acknowledgements
 
-The project uses some code from the Robot Lab repo
+The project uses code from the Robot Lab repo
 
 Sim2Real tba soon
