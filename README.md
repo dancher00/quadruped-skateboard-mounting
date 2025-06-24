@@ -160,6 +160,11 @@ python scripts/rsl_rl/base/play.py --task RobotLab-Isaac-Velocity-Flat-Unitree-A
 
 ## Troubleshooting
 
+
+<details>
+
+<summary>Click to expand</summary>
+
 ### Pylance Missing Indexing of Extensions
 
 In some VsCode versions, the indexing of part of the extensions is missing. In this case, add the path to your extension in `.vscode/settings.json` under the key `"python.analysis.extraPaths"`.
@@ -178,6 +183,8 @@ In some VsCode versions, the indexing of part of the extensions is missing. In t
     ]
 }
 ```
+</details>
+
 
 ## Citation
 
