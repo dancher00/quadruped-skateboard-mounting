@@ -202,7 +202,6 @@ Please cite the following if you use this code or parts of it:
     url={https://arxiv.org/abs/2505.06561}, 
 }
 ```
-Submitted to IEEE CDC. Waiting for a review
 
 Paper available on [arXiv](https://www.arxiv.org/abs/2505.06561)
 
