@@ -1,3 +1,12 @@
+# Quadruped Skateboard Mounting
+
+[![arXiv](https://img.shields.io/badge/arXiv-2505.06561-b31b1b.svg)](https://arxiv.org/abs/2505.06561)
+[![IsaacLab](https://img.shields.io/badge/IsaacLab-Compatible-76b900.svg)](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html)
+[![IsaacSim](https://img.shields.io/badge/IsaacSim-4.5-76b900.svg)](https://developer.nvidia.com/isaac-sim)
+[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/dancher00/quadruped-skateboard-mounting?style=social)](https://github.com/dancher00/quadruped-skateboard-mounting)
+
 ## Demo 
 
 ![Mounting Process](mounting_process.gif)
